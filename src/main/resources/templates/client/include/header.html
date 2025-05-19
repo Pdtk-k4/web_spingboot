@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<section id="header" th:fragment="header">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-3">
+        <a th:href="@{/DahitaBook}">
+          <img th:src="@{/resources/images/frontend/logo.png}" alt="Dahitabook" class="img-fluid">
+        </a>
+      </div>
+      <div class="col-lg-6">
+        <div class="row search-container">
+          <div class="col-10">
+            <input required type="text" class="input-search" placeholder="Tìm kiếm sách truyện..." aria-label="Recipient's username" aria-describedby="button-addon2">
+            <div class="search-results" style="display: none;"></div>
+          </div>
+          <div class="col-2">
+            <button class="button" type="button" id="button-addon2">Tìm kiếm</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3">
+        <div class="row">
+          <div class="col d-flex justify-content-center align-items-center">
+            <a th:href="@{/client/cart}" class="position-relative">
+              <span style="font-size: 23px; color: rgb(255, 123, 0);"><i class="fa-solid fa-cart-shopping"></i></span>
+              <span style="font-size: 10px;" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+            </a>
+          </div>
+          <div class="col-6" sec:authorize="isAuthenticated()">
+            <a class="dropdown-toggle" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-user-circle" style="font-size: 27px; color: rgb(255, 123, 0);"></i>
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" th:href="@{/client/profile}">Xem thông tin</a></li>
+              <li><a class="dropdown-item" th:href="@{/client/logout}">Đăng Xuất</a></li>
+            </ul>
+          </div>
+          <div class="col-4" sec:authorize="isAnonymous()">
+            <a style="font-size: 14px;" th:href="@{/client/login}">Đăng Nhập</a>
+          </div>
+          <div class="col-4" sec:authorize="isAnonymous()">
+            <a style="font-size: 14px;" th:href="@{/client/login}">Đăng Ký</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</html>

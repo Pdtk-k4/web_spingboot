@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+	<div th:replace="/admin/include/header :: header"></div>
+	<div class="clear"></div>
+	<div th:replace="/admin/include/header :: navbar"></div>
+	<div class="clear"></div>
+	<div th:replace="/admin/include/sidebar :: sidebar"></div>
+        <div class="grid_10">
+            <div class="box round first grid">
+                <h2>Inbox</h2>
+                <div class="block">        
+                    <table class="data display datatable" id="example">
+					<thead>
+						<tr>
+							<th>STT</th>
+							<th>Tên Khách hàng</th>
+							<th>Số lượng</th>
+							<th>Tổng tiền</th>
+							<th>Địa chỉ</th>
+							<th>Số điện thoại</th>
+							<th>Ngày đặt</th>
+							<th>Trạng thái</th>
+							<th>Tùy chỉnh</th>
+						</tr>
+					</thead>
+					<tbody>
+
+						<tr class="odd gradeX">
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td >
+<!--									style="<?php -->
+<!--									if ($result['ibStatus'] == 'Chờ duyệt') { -->
+<!--										echo 'color: red;'; -->
+<!--									} elseif ($result['ibStatus'] == 'Đã duyệt') { -->
+<!--										echo 'color: green;'; -->
+<!--									} else { -->
+<!--										echo 'color: black;';-->
+<!--									} -->
+<!--								?>"-->
+
+<!--								<?php echo $result['ibStatus']; ?>-->
+							</td>
+
+							<td><a th:href="@{/admin/detail_inbox}">Xem chi tiết</a></td>
+						</tr>
+
+					</tbody>
+				</table>
+               </div>
+            </div>
+        </div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        setupLeftMenu();
+
+        $('.datatable').dataTable();
+        setSidebarHeight();
+    });
+</script>
+	<div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

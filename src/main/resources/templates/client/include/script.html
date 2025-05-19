@@ -1,0 +1,86 @@
+<div th:fragment="script">
+  <script th:src="@{/resources/js/frontend/dynamic-image-gg-sign-in.js}"></script>
+  <script th:src="@{/resources/js/frontend/dynamic-image-gg-sign-up.js}"></script>
+  <script th:src="@{/resources/js/frontend/dynamic-image.js}"></script>
+  <script th:src="@{/resources/js/frontend/button-search.js}"></script>
+  <script th:src="@{/resources/js/frontend/scroll.js}"></script>
+  <script th:src="@{/resources/js/frontend/bootstrap.bundle.min.js}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const container = document.getElementById('container-account');
+      const overlayBtn = document.getElementById('overlayBtn');
+
+      // Lấy giá trị của tham số "tab" trên URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+
+      // Nếu tab là "register", kích hoạt giao diện đăng ký
+      if (tab === 'register' && container) {
+        container.classList.add('right-panel-active');
+      }
+
+      // Xử lý sự kiện khi nhấn vào nút chuyển đổi form
+      if (overlayBtn) {
+        overlayBtn.addEventListener('click', () => {
+          container.classList.toggle('right-panel-active');
+          overlayBtn.classList.remove('btnScaled');
+          window.requestAnimationFrame(() => {
+            overlayBtn.classList.add('btnScaled');
+          });
+        });
+      }
+    });
+
+  </script>
+  <script>
+    const nextIcon ='<i class="fa-solid fa-angle-right"></i>'
+    const prevIcon ='<i class="fa-solid fa-angle-left"></i>'
+    $(document).ready(function() {
+      $('.owl-carousel').owlCarousel({
+        loop: true,
+        margin: 10,
+        responsiveClass: true,
+        navText: [
+          prevIcon,
+          nextIcon
+        ],
+        dots: false,
+        responsive: {
+          0: {
+            items: 1,
+            nav: true
+          },
+          600: {
+            items: 3,
+            nav: false
+          },
+          1000: {
+            items: 4,
+            nav: true,
+            loop: false,
+            margin: 20
+          }
+        }
+      })
+    })
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const quantityInput = document.getElementById("quantity");
+      const increaseBtn = document.querySelector(".increase");
+      const decreaseBtn = document.querySelector(".decrease");
+
+      increaseBtn.addEventListener("click", function() {
+        let currentValue = parseInt(quantityInput.value);
+        quantityInput.value = currentValue + 1;
+      });
+
+      decreaseBtn.addEventListener("click", function() {
+        let currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+          quantityInput.value = currentValue - 1;
+        }
+      });
+    });
+  </script>
+</div>

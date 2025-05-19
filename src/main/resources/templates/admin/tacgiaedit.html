@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Sửa tên tác giả</h2>
+            <div class="block copyblock">
+
+                <form th:action="@{/admin/tacgiaedit/{id}(id=${author.id})}" th:object="${author}" method="post">
+                    <table class="form">					
+                        <tr>
+                            <td>
+                                <input type="text" th:field="*{auname}" placeholder="Sửa tên tác giả..." class="medium" />
+                            </td>
+                        </tr>
+                        <tr> 
+                            <td>
+                                <input type="submit" name="submit" Value="Sửa" />
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

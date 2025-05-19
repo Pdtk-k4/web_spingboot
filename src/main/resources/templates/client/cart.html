@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/client/include/head :: head"></head>
+<body>
+<section th:replace="/client/include/header :: header"></section>
+<div class="layoutPage-cart" id="layout-cart">
+    <div class="wrapper-cart-detail">
+        <div class="container ">
+
+            <div class="heading-page">
+                <div class="header-page">
+					<h1>Giỏ hàng của bạn</h1>
+					<p class="count-cart">Có <span> 2 sản phẩm </span>trong giỏ hàng</p>
+                </div>
+            </div>
+            <div class="row wrapbox-content-cart">
+                <div class="row wrapbox-content-cart">
+                    <div class="cart-container">
+                        <div class="cart-col-left">
+                            <div class="main-content-cart">
+                                <form action="" id="cartformpage">
+                                    <div class="row">
+                                        <div class="col-md-12 col-sm-12 col-xs-12">
+                                            <table class="table-cart">
+                                                <thead>
+													<tr>
+														<th class="image">&nbsp;</th>
+														<th class="px-3">Tên sản phẩm</th>
+														<th class="item">Giá</th>
+														<th class="item">Số lượng</th>
+														<th class="item">Thành tiền</th>
+														<th class="remove">&nbsp;</th>
+													</tr>
+												</thead>
+                                                <tbody>
+                                                    <tr class="line-item-container">
+                                                        <td class="image">
+															<div class="product_image">
+																<a href="">
+																	<img src="/resources/uploads/" alt="">
+																</a>
+															</div>
+														</td>
+                                                        <td class="item" width="420px">
+															<h3><a href=""></a></h3>
+														</td>
+                                                        <td class="item">
+                                                            <p>
+                                                                <span class="price">161,100₫</span>
+
+                                                                <span class="del">
+																	<del>179,000₫</del>
+																	<span class="sale">0% </span>
+																</span>
+
+                                                            </p>
+                                                        </td>
+                                                        <td class="qty">
+                                                            <div class="qty quantity-partent qty-click clearfix" data-proid="" data-tstid="">
+                                                                <button type="button" class="qtyminus qty-btn">-</button>
+                                                                <input type="text" value="" class="tc line-item-qty item-quantity bg-white">
+                                                                <button type="button" class="qtyplus qty-btn">+</button>															
+                                                            </div>
+														</td>
+                                                        <td class="item">
+															<p class="">
+																<span class="line-item-total price">₫</span>
+															</p>
+														</td>
+                                                        <td class="remove">
+                                                            <a href="#" class="cart btn-remove-item" data-proid="" data-tstid="">
+                                                                <img src="//theme.hstatic.net/200000845405/1001223012/14/ic_close.png?v=414">
+                                                            </a>
+                                                        </td>
+
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12 col-md-5 col-lg-7">
+                                            <div class="sidebox-group">
+                                                <h3>Ghi chú đơn hàng</h3>
+                                                <div class="checkout-note clearfix">
+                                                    <textarea id="note" name="note" rows="4" placeholder="Ghi chú"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-7 col-lg-5">
+                                            <div class="sidebox-order">
+                                                <div class="sidebox-order-inner">
+                                                    <div class="sidebox-order_title">
+														<h3>Thông tin đơn hàng</h3>
+													</div>
+                                                    <div class="sidebox-order_total">
+														<p>Tổng tiền:<span class="total-price">₫</span></p>
+													</div>
+                                                    <div class="sidebox-order_action">
+														<a href="" class="btn btn-dark btncart-checkout">THANH TOÁN</a>
+														<p class="link-continue">
+															<a href="/DahitaBook">
+																<i class="fa fa-reply"></i> Tiếp tục mua hàng
+															</a>
+														</p>
+													</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="heading-page">
+                <div class="header-page">
+					<h1>Giỏ hàng của bạn</h1>
+					<p class="count-cart">Có <span>0 sản phẩm </span>trong giỏ hàng</p>
+                </div>
+            </div>
+            <a href="/DahitaBook"><span>Tiếp tục mua hàng</span></a>
+        </div>
+    </div>
+</div>
+<section th:replace="/client/include/footer :: footer"></section>
+<div th:replace="/client/include/script :: script"></div>
+</body>
+</html>

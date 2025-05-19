@@ -1,0 +1,31 @@
+<div class="grid_12 header-repeat" th:fragment="header" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <div id="branding">
+        <div class="floatleft middle">
+            <h1>Dahita Books</h1>
+        </div>
+        <!-- <div class="floatleft middle">
+            <h1>Training with live project</h1>
+            <p>www.trainingwithliveproject.com</p>
+        </div> -->
+        <div class="floatright">
+            <div class="floatleft">
+                <img th:src="@{/resources/images/admin/img-profile.jpg}" alt="Profile Pic" /></div>
+            <div class="floatleft marginleft10">
+                <ul class="inline-ul floatleft">
+                    <li>Hello <span sec:authentication="name"></span></li>
+                    <li><a th:href="@{/admin/logout}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>
+<div class="grid_12" th:fragment="navbar">
+    <ul class="nav main">
+        <li class="ic-dashboard"><a th:href="@{/admin}"><span>Report</span></a> </li>
+        <li class="ic-form-style"><a th:href="@{#}"><span>Profile</span></a></li>
+        <li class="ic-typography"><a th:href="@{/templates/admin/changepassword.html}"><span>Change Password</span></a></li>
+        <li class="ic-grid-tables"><a th:href="@{/admin/inbox}"><span>Inbox</span></a></li>
+        <li class="ic-charts"><a th:href="@{/DahitaBook}" target="_blank"><span>Visit Website</span></a></li>
+    </ul>
+</div>

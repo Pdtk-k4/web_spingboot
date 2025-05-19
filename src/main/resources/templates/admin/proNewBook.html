@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+	<div th:replace="/admin/include/header :: header"></div>
+	<div class="clear"></div>
+	<div th:replace="/admin/include/header :: navbar"></div>
+	<div class="clear"></div>
+	<div th:replace="/admin/include/sidebar :: sidebar"></div>
+	<div class="grid_10">
+		<div class="box round first grid">
+			<h2>Sách mới</h2>
+			<div class="block">
+				<table class="data display datatable" id="example">
+					<thead>
+					<tr>
+						<th>STT</th>
+						<th>ID</th>
+						<th>Tên sản phẩm</th>
+						<th>Ảnh</th>
+						<th>Loại SP</th>
+						<th>Hiển thị</th>
+						<th>Tùy chỉnh</th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr class="odd gradeX" th:each="product, iterStat : ${newBooks}">
+						<td th:text="${iterStat.count}"></td>
+						<td th:text="${product.id}"></td>
+						<td th:text="${product.proname}"></td>
+						<td>
+							<img th:src="@{'/resources/uploads/' + ${product.proimage}}" style="max-width: 100px;" alt="Product Image">
+						</td>
+						<td th:text="${product.pronewbook} ? 'Sách mới'  : 'Sách cũ'"></td>
+						<td th:text="${product.prostatus} ? 'Đang hiển thị' : 'Không hiển thị'"></td>
+						<td>
+							<a th:href="@{'/admin/productedit/' + ${product.id}}">Sửa</a> ||
+							<a th:href="@{'/admin/productdel/' + ${product.id}}" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</a>
+						</td>
+					</tr>
+					<tr th:if="${newBooks.isEmpty()}">
+						<td colspan="7">Không có sách mới nào.</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		$(document).ready(function () {
+			setupLeftMenu();
+			$('.datatable').dataTable();
+			setSidebarHeight();
+		});
+	</script>
+	<div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

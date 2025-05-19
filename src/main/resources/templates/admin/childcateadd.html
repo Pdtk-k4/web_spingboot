@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Thêm danh mục con</h2>
+            <div class="block copyblock mb-25">
+                <span class="mb-25">
+
+                </span>
+                <form action="" method="post">
+                    <table class="form">					
+                        <tr>
+                            <td>
+                                <label>Tên danh mục con:</label>
+                            </td>
+                            <td>
+                                <input type="text" name="atbName" placeholder="Thêm danh mục con..." class="medium" required/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Danh mục</label>
+                            </td>
+                            <td>
+                                <select id="" name="category" required>
+                                    <option value="">Chọn danh mục</option>
+<!--                                    <?php-->
+<!--                                        $category = new Category();-->
+<!--                                        $getListCategory = $category->getListCategory();-->
+<!--                                        if ($getListCategory) {-->
+<!--                                            while ($result = $getListCategory->fetch_assoc()) {-->
+<!--                                                $selected = (isset($_POST['category']) && $_POST['category'] == $result['catId']) ? "selected" : "";-->
+<!--                                                echo "<option value='{$result['catId']}' $selected>{$result['catName']}</option>";-->
+<!--                                            }-->
+<!--                                        }-->
+<!--                                    ?>-->
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Hiển thị</label>
+                            </td>
+                            <td>
+                                <select id="select" name="type" required>
+                                    <option value="">Chọn</option>
+                                    <option value="1">Có</option>
+                                    <option value="0">Không</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr> 
+                            <td>
+                                <input type="submit" name="submit" Value="Thêm" />
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+            <h2 class="">Danh sách danh mục con</h2>
+            <?php
+                if(isset($delAtbId)){
+                    echo $delAtbId;
+                }
+            ?> 
+			<div class="block">        
+				<table class="data display datatable" id="example">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Tên danh mục con</th>
+                            <th>Tên danh mục</th>
+                            <th>Hiển thị</th>
+                            <th>Tùy chỉnh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                            $getListAttributes = $attributes->getListAttributes();
+                            if($getListAttributes){
+                                $i = 0;
+                                while($result = $getListAttributes->fetch_assoc()){
+                                    $i++;
+                        ?>
+                        <tr class="odd gradeX">
+                            <td><?php echo $i;?></td>
+                            <td><?php echo $result['atbName'];?></td>
+                            <td><?php echo $result['catName'];?></td>
+                            <td>
+                                <?php 
+                                    if($result['type'] == 1){
+                                        echo 'có';
+                                    }else{
+                                        echo 'Không';
+                                    }?></td>
+                            <td><a href="childcatedit.html?atbid=<?php echo $result['atbId']; ?>">Sửa</a> || <a onclick="return confirm('Bạn có chắc muốn xóa?')" href="?delid=<?php echo $result['atbId'];?>">Xóa</a></td>
+                        </tr>
+                        <?php 
+                                }
+                            } 
+                        ?>
+                    </tbody>
+			    </table>
+			</div>
+        </div>
+    </div>
+    <script type="text/javascript">
+		$(document).ready(function () {
+			setupLeftMenu();
+
+			$('.datatable').dataTable();
+			setSidebarHeight();
+		});
+	</script>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<style>
+    table.table-cart tr td.item {
+    padding-left: 15px;
+}
+table.table-cart tr td.item p {
+    margin-bottom: 5px;
+}
+table.table-cart tr td.item .price {
+    color: #f6001a;
+    font-weight: 500;
+    font-size: 16px;
+}
+.price{
+    color: #f6001a;
+    font-weight: 500;
+    font-size: 16px;
+}
+table.table-cart tr td.item p .del {
+    display: block;
+}
+table.table-cart tr td.item p del {
+    font-size: 12px;
+}
+table.table-cart tr td.item p .sale {
+    background: #f00;
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 3px;
+    padding: 1px 5px;
+}
+</style>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+<div class="grid_10">
+        <div class="box round first grid">
+            <h2>Chi tiết đơn hàng</h2>
+            <span class="back"><a th:href="@{/admin/inbox}"><i class="fa-solid fa-arrow-left"></i></a></span>
+            <div class="block copyblock mb-25">
+
+                <form action="" method="post">
+                    <table class="form">					
+                        <tr>
+                            <td>
+                                <label>Tên Khách Hàng</label>
+                            </td>
+                            <td>
+                                <input type="text" readonly class="medium" value=""/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Địa chỉ</label>
+                            </td>
+                            <td>
+                                <input type="text" readonly class="medium" value="" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Số điện thoại</label>
+                            </td>
+                            <td>
+                                <input type="text" readonly class="medium" value="" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Tổng số lượng</label>
+                            </td>
+                            <td>
+                                <input type="text" readonly class="medium" value="" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Tổng tiền</label>
+                            </td>
+                            <td>
+                                <input type="text" readonly class="medium price" value="₫" />
+                            </td>
+                        </tr>
+                        <tr> 
+                            <td>
+                                <input type="submit" name="submit" Value="Duyệt" />
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+
+            </div>
+            <h2 class="">Đơn hàng được đặt</h2>
+			<div class="block">        
+				<table class="data display datatable table-cart" id="example">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Ảnh</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Giá</th>
+                            <th>Số lượng</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr class="odd gradeX">
+                            <td></td>
+                            <td><img src="" style="max-width: 100px;" ></td>
+                            <td></td>
+                            <td class="item">
+                                <p>
+<!--                                    <?php -->
+<!--                                        if ($resultDetail_inbox['proSale'] > 0) { -->
+<!--                                            $originalPrice = $resultDetail_inbox['proPrice'] - ($resultDetail_inbox['proPrice'] * ($resultDetail_inbox['proSale'] / 100));-->
+<!--                                    ?>-->
+<!--                                        <span class="price"><?php echo number_format($originalPrice, 0, '.', '.'); ?>₫</span>-->
+<!--                                        <span class="del">-->
+<!--                                            <del><?php echo number_format($resultDetail_inbox['proPrice'], 0, '.', '.'); ?>₫</del>-->
+<!--                                            <span class="sale">-<?php echo $resultDetail_inbox['proSale']; ?>%</span>-->
+<!--                                        </span>-->
+<!--                                    <?php -->
+<!--                                        } else { -->
+<!--                                    ?>-->
+<!--                                        <span class="price"><?php echo number_format($resultDetail_inbox['proPrice'], 0, '.', '.'); ?>₫</span>-->
+<!--                                    <?php -->
+<!--                                        } -->
+<!--                                    ?>-->
+                                </p>
+                            </td>
+                            <td></td>
+                            <td class="price">₫</td>
+                        </tr>
+
+                    </tbody>
+			    </table>
+			</div>
+        </div>
+    </div>
+    <script type="text/javascript">
+		$(document).ready(function () {
+			setupLeftMenu();
+
+			$('.datatable').dataTable();
+			setSidebarHeight();
+		});
+	</script>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>
+
+

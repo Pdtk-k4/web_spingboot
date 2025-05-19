@@ -1,0 +1,109 @@
+<?php
+ob_start(); // Bật Output Buffering
+
+include 'inc/header.php';
+include 'inc/sidebar.php';
+include '../classes/category.php';
+include '../classes/attributes.php';
+
+if(isset($_GET['atbid']) && $_GET['atbid']!=NULL){
+    $atbId = $_GET['atbid'];
+}
+$attributes = new Attributes();
+$updateAttributes = "";
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+    $updateAttributes = $attributes->updateAttributes($_POST, $atbId);
+
+    if (strpos($updateAttributes, 'success') !== false) {
+        header("Location: childcateadd.php?success");
+        exit;
+    }
+}
+
+if (isset($_GET['success'])) {
+    $updateAttributes = "<span class='success'>Sửa thành công</span>";
+}
+?>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Sửa tên danh mục</h2>
+            <span class="back"><a href="childcateadd.php"><i class="fa-solid fa-arrow-left"></i></a></span>
+            <div class="block copyblock">
+                <?php
+                    if(isset($updateAttributes)){
+                        echo $updateAttributes;
+                    }
+                ?>
+                <?php
+                    $get_atb_name = $attributes->getAtbById($atbId);
+                    if($get_atb_name){
+                        while($result = $get_atb_name->fetch_assoc()){
+                ?>
+                <form action="" method="post">
+                    <table class="form">					
+                        <tr>
+                            <td>
+                                <label>Tên danh mục</label>
+                            </td>
+                            <td>
+                                <input type="text" name="atbName" placeholder="Thêm danh mục..." class="medium" value="<?php echo $result['atbName'] ?>" required/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Danh mục</label>
+                            </td>
+                            <td>
+                                <select id="select" name="category" required>
+                                    <option value="">Chọn danh mục</option>
+                                    <?php
+                                        $category = new Category();
+                                        $getListCategory = $category->getListCategory();
+                                        if ($getListCategory) {
+                                            while ($resultCat = $getListCategory->fetch_assoc()) {
+                                                $selected = ($result['catId'] == $resultCat['catId']) ? "selected" : "";
+                                                echo "<option value='{$result['catId']}' $selected>{$resultCat['catName']}</option>";
+                                            }
+                                        }
+                                    ?>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Hiển thị</label>
+                            </td>
+                            <td>
+                                <select id="select" name="type" required>
+                                    <option value="">Chọn</option>
+                                    <?php
+                                        if($result['type'] == 1){
+                                    ?>
+                                    <option selected value="1">Có</option>
+                                    <option value="0">Không</option>
+                                    <?php
+                                        }else{
+                                    ?>
+                                    <option value="1">Có</option>
+                                    <option selected value="0">Không</option>
+                                    <?php
+                                        }
+                                    ?>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr> 
+                            <td>
+                                <input type="submit" name="submit" Value="Sửa" />
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+                <?php 
+                        }
+                    }
+                ?>
+            </div>
+        </div>
+    </div>
+<?php include 'inc/footer.php';?>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Chỉnh sửa sản phẩm</h2>
+            <span class="back"><a th:href="@{/admin/productlist}"><i class="fa-solid fa-arrow-left"></i></a></span>
+            <div class="block">
+                <form th:action="@{/admin/productedit/{id}(id=${product.id})}" th:object="${product}" method="post" enctype="multipart/form-data" id="productForm">
+                    <div th:if="${success}" class="success-message" id="successMessage">
+                        <span>Cập nhật thành công</span>
+                    </div>
+                    <div th:if="${error != null}" class="error" th:text="${error}"></div>
+                    <table class="form">
+                        <tr>
+                            <td><label>Tên sản phẩm</label></td>
+                            <td>
+                                <input type="text" th:field="*{proname}" placeholder="Nhập tên sản phẩm..." class="medium" required id="proname"/>
+                                <span th:errors="*{proname}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Tác giả</label></td>
+                            <td>
+                                <select id="authorSelect" th:field="*{author.id}" required>
+                                    <option value="">Chọn tác giả</option>
+                                    <option th:each="author : ${listAuthor}" th:value="${author.id}" th:text="${author.auname}" th:selected="${author.id == product.author.id}"></option>
+                                </select>
+                                <span th:errors="*{author.id}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Danh mục</label></td>
+                            <td>
+                                <select th:field="*{category.id}" required id="categorySelect">
+                                    <option value="">Chọn danh mục</option>
+                                    <option th:each="category : ${listCategory}" th:value="${category.id}" th:text="${category.catname}" th:selected="${category.id == product.category.id}"></option>
+                                </select>
+                                <span th:errors="*{category.id}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Nhà cung cấp</label></td>
+                            <td>
+                                <select th:field="*{supplier.id}" required id="supplierSelect">
+                                    <option value="">Chọn nhà cung cấp</option>
+                                    <option th:each="supplier : ${listSupplier}" th:value="${supplier.id}" th:text="${supplier.supname}" th:selected="${supplier.id == product.supplier.id}"></option>
+                                </select>
+                                <span th:errors="*{supplier.id}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="vertical-align: top; padding-top: 9px;"><label>Nội dung</label></td>
+                            <td>
+                                <textarea th:field="*{procontent}" class="tinymce" id="procontent"></textarea>
+                                <span th:errors="*{procontent}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Giá sản phẩm</label></td>
+                            <td>
+                                <input th:field="*{proprice}" type="number" placeholder="0" class="width" required min="0" id="proprice"/>
+                                <span th:errors="*{proprice}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Loại sản phẩm</label></td>
+                            <td>
+                                <input type="checkbox" th:field="*{pronewbook}" th:checked="${product.pronewbook}" id="pronewbook">
+                                <label for="pronewbook" style="margin-right: 20px;">Sách mới</label>
+                                <input type="checkbox" th:field="*{prostatus}" th:checked="${product.prostatus}" id="prostatus">
+                                <label for="prostatus" style="margin-right: 20px;">Nổi bật</label>
+                                <label style="margin-right: 5px;">Sale</label>
+                                <input type="number" th:field="*{prosale}" placeholder="0" class="width" min="0" id="prosale"/>
+                                <span th:errors="*{prosale}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Ảnh bìa hiện tại</label></td>
+                            <td>
+                                <img th:if="${product.proimage != null}" th:src="@{'/resources/uploads/' + ${product.proimage}}" alt="Ảnh bìa hiện tại" class="current-cover" style="max-width: 200px;"/>
+                                <input id="coverInput" name="fileImage" type="file" accept="image/*">
+                                <img id="previewCover" src="" alt="Preview ảnh bìa" style="max-width: 200px; display: none;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Ảnh chi tiết hiện tại</label></td>
+                            <td>
+                                <div id="currentGallery" style="display: flex; gap: 10px;">
+                                    <img th:each="image : ${product.productsImages}" th:src="@{'/resources/uploads/' + ${image.piimage}}" style="max-width: 100px;" alt="Ảnh chi tiết"/>
+                                </div>
+                                <input id="galleryInput" name="proGallery" type="file" multiple accept="image/*">
+                                <div id="previewGallery" style="display: flex; gap: 10px;"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>
+                                <input type="submit" name="submit" value="Cập nhật"/>
+                                <button type="button" id="clearForm">Xóa dữ liệu</button>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/resources/js/admin/tiny-mce/jquery.tinymce.js}" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            setupTinyMCE();
+            setDatePicker('date-picker');
+            $('input[type="checkbox"]').fancybutton();
+            $('input[type="radio"]').fancybutton();
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("productForm");
+            const fields = [
+                "proname", "authorSelect", "categorySelect", "supplierSelect",
+                "procontent", "proprice", "prosale" // Loại bỏ pronewbook, prostatus khỏi LocalStorage
+            ];
+
+            // Khôi phục dữ liệu từ LocalStorage (trừ pronewbook và prostatus)
+            const savedData = JSON.parse(localStorage.getItem("productFormData")) || {};
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element && savedData[field] !== undefined) {
+                    element.value = savedData[field];
+                }
+            });
+
+            if (savedData.procontent && typeof tinymce !== "undefined") {
+                tinymce.get("procontent").setContent(savedData.procontent);
+            }
+
+            // Lưu dữ liệu khi thay đổi
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element) {
+                    element.addEventListener("input", saveFormData);
+                    element.addEventListener("change", saveFormData);
+                }
+            });
+
+            if (typeof tinymce !== "undefined") {
+                tinymce.get("procontent").on("change", saveFormData);
+            }
+
+            // Xử lý preview ảnh bìa
+            document.getElementById("coverInput").addEventListener("change", function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const currentCover = document.querySelector(".current-cover");
+                    if (currentCover) {
+                        currentCover.style.display = "none";
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewCover = document.getElementById("previewCover");
+                        previewCover.src = e.target.result;
+                        previewCover.style.display = "block";
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Xử lý preview ảnh chi tiết
+            document.getElementById("galleryInput").addEventListener("change", function(event) {
+                const files = event.target.files;
+                const previewGallery = document.getElementById("previewGallery");
+                const currentGallery = document.getElementById("currentGallery");
+                previewGallery.innerHTML = "";
+                currentGallery.innerHTML = "";
+                if (files.length > 4) {
+                    alert("Bạn chỉ có thể chọn tối đa 4 ảnh!");
+                    event.target.value = "";
+                    return;
+                }
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement("img");
+                        img.src = e.target.result;
+                        img.style.maxWidth = "100px";
+                        img.style.marginRight = "5px";
+                        previewGallery.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Xóa dữ liệu khi submit thành công
+            form.addEventListener("submit", function(event) {
+                localStorage.removeItem("productFormData");
+            });
+
+            // Xóa dữ liệu khi nhấn nút "Xóa dữ liệu"
+            document.getElementById("clearForm").addEventListener("click", function() {
+                localStorage.removeItem("productFormData");
+                form.reset();
+                if (typeof tinymce !== "undefined") {
+                    tinymce.get("procontent").setContent("");
+                }
+                document.getElementById("previewCover").style.display = "none";
+                document.getElementById("previewCover").src = "";
+                document.getElementById("previewGallery").innerHTML = "";
+                const currentCover = document.querySelector(".current-cover");
+                if (currentCover) {
+                    currentCover.style.display = "block";
+                }
+            });
+
+            // Ẩn thông báo thành công sau 3 giây
+            const successMessage = document.getElementById("successMessage");
+            if (successMessage) {
+                setTimeout(() => {
+                    successMessage.style.display = "none";
+                }, 3000);
+            }
+
+            function saveFormData() {
+                const data = {};
+                fields.forEach(field => {
+                    const element = document.getElementById(field);
+                    if (element) {
+                        data[field] = element.value;
+                    }
+                });
+                if (typeof tinymce !== "undefined") {
+                    data.procontent = tinymce.get("procontent").getContent();
+                }
+                localStorage.setItem("productFormData", JSON.stringify(data));
+            }
+        });
+    </script>
+    <style>
+        .success-message {
+            background-color: #dff0d8;
+            color: #3c763d;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #d6e9c6;
+            border-radius: 4px;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

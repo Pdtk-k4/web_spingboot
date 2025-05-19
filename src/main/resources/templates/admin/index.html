@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+    <div class="container_12">
+        <div th:replace="/admin/include/header :: header"></div>
+        <div class="clear"></div>
+        <div th:replace="/admin/include/header :: navbar"></div>
+        <div class="clear"></div>
+        <div th:replace="/admin/include/sidebar :: sidebar"></div>
+        <div class="grid_10">
+            <div class="box round first grid">
+                <h2>Doanh thu các tháng</h2>
+                <div style="margin-top: 15px; font-size: 16px;">
+                <span style="font-weight: 600;">Tổng Doanh thu: <span style="color: green;"> <?php echo number_format($result['total'], 0, '.', '.'); ?> VNĐ </span> </span>
+            </div>
+        <canvas id="myChart"></canvas>
+          </div>
+        </div>
+
+        <script th:src="@{https://cdn.jsdelivr.net/npm/chart.js}"></script>
+<script>
+  // Lấy dữ liệu từ PHP
+  fetch('')
+    .then(response => response.json()) // Chuyển JSON thành mảng JavaScript
+    .then(data => {
+      let ctx = document.getElementById('myChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                   'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+          datasets: [{
+            label: 'Doanh thu (VNĐ)',
+            data: data, // Dữ liệu lấy từ get_revenue.php
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: true },
+            title: {
+              display: true,
+              text: 'Doanh thu theo tháng'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    })
+    .catch(error => console.error('Lỗi khi tải dữ liệu:', error));
+</script>
+    </div>
+    <div class="clear"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

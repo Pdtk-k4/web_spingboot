@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Sửa tên danh mục</h2>
+            <span class="back"><a th:href="@{/admin/catedit}"><i class="fa-solid fa-arrow-left"></i></a></span>
+            <div class="block copyblock">
+
+                <form th:action="@{/admin/catedit/{id}(id=${category.id})}" th:object="${category}" method="post">
+                    <table class="form">
+                        <tr>
+                            <td>
+                                <label>Tên danh mục</label>
+                            </td>
+                            <td>
+                                <input th:field="*{catname}" type="text" placeholder="Thêm danh mục..." class="medium" required/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Trạng thái</label></td>
+                            <td>
+                                <div style="display: inline-block; margin-right: 10px;">
+                                    <input th:field="*{catstatus}" type="radio" id="status1" value="true">
+                                    <label for="status1">Hiển thị</label>
+                                </div>
+                                <div style="display: inline-block;">
+                                    <input th:field="*{catstatus}" type="radio" id="status2" value="false">
+                                    <label for="status2">Ẩn</label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+<!--                                <input type="hidden" th:field="*{id}" />-->
+                                <input type="submit" name="submit" value="Sửa" />
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>
