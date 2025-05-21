@@ -1,12 +1,13 @@
 package com.example.bookdahita.controller.client;
 
-import com.example.bookdahita.models.Product;
-import com.example.bookdahita.models.ProductsImages;
+import com.example.bookdahita.models.*;
 import com.example.bookdahita.service.ProductImageService;
 import com.example.bookdahita.service.ProductService;
+import com.example.bookdahita.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +27,11 @@ public class DetailController {
     @Autowired
     private ProductImageService productImageService;
 
+    @Autowired
+    private TransactionService transactionService;
+
     @GetMapping("/detail")
-    private String detail(@RequestParam("id") Long id, Model model) {
+    private String detail(@RequestParam("id") Long id, @AuthenticationPrincipal CustomUserDetail userDetail, Model model) {
         Product product = productService.findById(id);
         if (product == null) {
             return "redirect:/client/error"; // Chuyển hướng nếu không tìm thấy sản phẩm
@@ -46,32 +50,58 @@ public class DetailController {
         model.addAttribute("productImages", productImages);
         model.addAttribute("featuredProducts", featuredProducts);
         model.addAttribute("relatedProducts", relatedProducts);
+
+        // Thêm totalUniqueQuantity
+        if (userDetail != null) {
+            User user = userDetail.getUser();
+            Transaction transaction = transactionService.getCartTransaction(user);
+            int totalUniqueQuantity = (transaction != null && transaction.getOrders() != null) ?
+                    (int) transaction.getOrders().stream()
+                            .filter(order -> order != null && order.getProduct() != null)
+                            .map(order -> order.getProduct().getId())
+                            .distinct()
+                            .count() : 0;
+            model.addAttribute("totalUniqueQuantity", totalUniqueQuantity);
+        } else {
+            model.addAttribute("totalUniqueQuantity", 0);
+        }
+
         return "client/detail";
     }
 
     @PostMapping("/add-to-cart")
-    public String addToCart(@RequestParam("id") Long productId, Model model) {
+    public String addToCart(@RequestParam("id") Long productId, @AuthenticationPrincipal CustomUserDetail userDetail, Model model) {
         // Kiểm tra trạng thái đăng nhập
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+        if (userDetail == null) {
             return "redirect:/client/login"; // Chuyển hướng đến trang đăng nhập
         }
 
         // Logic thêm sản phẩm vào giỏ hàng (giả định)
-        // Ví dụ: productService.addToCart(productId, authentication.getName());
-        return "redirect:/client/cart"; // Chuyển hướng đến trang giỏ hàng sau khi thêm
+        try {
+            User user = userDetail.getUser();
+            transactionService.addProductToTransaction(user, productService.findById(productId), 1);
+            return "redirect:/client/cart";
+        } catch (Exception e) {
+            model.addAttribute("error", "Lỗi khi thêm sản phẩm: " + e.getMessage());
+            return "redirect:/client/detail?id=" + productId;
+        }
     }
 
     @PostMapping("/buy-now")
-    public String buyNow(@RequestParam("id") Long productId, Model model) {
+    public String buyNow(@RequestParam("id") Long productId, @AuthenticationPrincipal CustomUserDetail userDetail, Model model) {
         // Kiểm tra trạng thái đăng nhập
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
+        if (userDetail == null) {
             return "redirect:/client/login"; // Chuyển hướng đến trang đăng nhập
         }
 
         // Logic mua ngay (giả định)
-        // Ví dụ: productService.buyNow(productId, authentication.getName());
-        return "redirect:/client/checkout"; // Chuyển hướng đến trang thanh toán
+        try {
+            User user = userDetail.getUser();
+            transactionService.addProductToTransaction(user, productService.findById(productId), 1);
+            return "redirect:/client/checkout";
+        } catch (Exception e) {
+            model.addAttribute("error", "Lỗi khi mua ngay: " + e.getMessage());
+            return "redirect:/client/detail?id=" + productId;
+        }
     }
 }

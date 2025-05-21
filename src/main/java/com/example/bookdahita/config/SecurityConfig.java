@@ -1,6 +1,11 @@
 package com.example.bookdahita.config;
 
+import com.example.bookdahita.models.CustomUserDetail;
+import com.example.bookdahita.models.User;
 import com.example.bookdahita.service.CustomUserDetailService;
+import com.example.bookdahita.service.ProductService;
+import com.example.bookdahita.service.TransactionService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,10 +20,16 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     @Autowired
     private CustomUserDetailService customUserDetailService;
 
-    // SecurityFilterChain cho client
+    @Autowired
+    private TransactionService transactionService;
+
+    @Autowired
+    private ProductService productService;
+
     @Bean
     @Order(1)
     SecurityFilterChain clientSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -27,28 +38,42 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/DahitaBook", "/client/**", "/client/register", "/client/login", "/resources/**", "/static/**").permitAll()
-                        .anyRequest().hasAuthority("USER") // Chỉ cho phép vai trò USER truy cập các yêu cầu đã xác thực
+                        .anyRequest().hasAuthority("USER")
                 )
                 .formLogin(form -> form
                         .loginPage("/client/login")
                         .loginProcessingUrl("/client/login")
                         .defaultSuccessUrl("/DahitaBook", true)
+                        .successHandler((request, response, authentication) -> {
+                            HttpSession session = request.getSession();
+                            Long productId = (Long) session.getAttribute("pendingProductId");
+                            Integer quantity = (Integer) session.getAttribute("pendingQuantity");
+                            if (productId != null && quantity != null) {
+                                CustomUserDetail userDetail = (CustomUserDetail) authentication.getPrincipal();
+                                User user = userDetail.getUser();
+                                transactionService.addProductToTransaction(user, productService.findById(productId), quantity);
+                                session.removeAttribute("pendingProductId");
+                                session.removeAttribute("pendingQuantity");
+                                response.sendRedirect("/client/cart");
+                            } else {
+                                response.sendRedirect("/DahitaBook");
+                            }
+                        })
                         .failureUrl("/client/login?error=true")
                 )
                 .logout(logout -> logout
                         .logoutUrl("/client/logout")
                         .logoutSuccessUrl("/client/login")
-                        .invalidateHttpSession(true) // Đảm bảo phiên client bị hủy khi đăng xuất
+                        .invalidateHttpSession(true)
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Tạo phiên nếu cần
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .userDetailsService(customUserDetailService); // Sử dụng CustomUserDetailService
+                .userDetailsService(customUserDetailService);
 
         return http.build();
     }
 
-    // SecurityFilterChain cho admin
     @Bean
     @Order(2)
     SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -57,7 +82,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/login").permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ADMIN") // Chỉ cho phép vai trò ADMIN
+                        .requestMatchers("/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -69,12 +94,12 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/admin/logout")
                         .logoutSuccessUrl("/admin/login")
-                        .invalidateHttpSession(true) // Đảm bảo phiên admin bị hủy khi đăng xuất
+                        .invalidateHttpSession(true)
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Tạo phiên nếu cần
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .userDetailsService(customUserDetailService); // Sử dụng CustomUserDetailService
+                .userDetailsService(customUserDetailService);
 
         return http.build();
     }

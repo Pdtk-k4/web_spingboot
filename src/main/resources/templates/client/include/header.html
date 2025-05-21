@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<section id="header" th:fragment="header">
+<section id="header" th:fragment="header" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
   <div class="container">
     <div class="row">
       <div class="col-lg-3">
@@ -24,7 +22,8 @@
           <div class="col d-flex justify-content-center align-items-center">
             <a th:href="@{/client/cart}" class="position-relative">
               <span style="font-size: 23px; color: rgb(255, 123, 0);"><i class="fa-solid fa-cart-shopping"></i></span>
-              <span style="font-size: 10px;" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+              <span style="font-size: 10px;" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    th:text="${totalUniqueQuantity != null ? totalUniqueQuantity : 0}" id="cartBadge">0</span>
             </a>
           </div>
           <div class="col-6" sec:authorize="isAuthenticated()">
@@ -47,4 +46,32 @@
     </div>
   </div>
 </section>
-</html>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    function updateCartBadge() {
+      $.ajax({
+        url: '/client/cart/total-unique-quantity',
+        type: 'GET',
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+        },
+        success: function(response) {
+          $('#cartBadge').text(response.totalUniqueQuantity || 0);
+        },
+        error: function(xhr) {
+          $('#cartBadge').text('0');
+        }
+      });
+    }
+
+    // Cập nhật badge khi tải trang
+    updateCartBadge();
+
+    // Cập nhật badge định kỳ (mỗi 10 giây)
+    setInterval(updateCartBadge, 10000);
+
+    // Thêm sự kiện cập nhật khi thêm/xóa sản phẩm (cần tích hợp với nút "Thêm vào giỏ")
+    // Ví dụ: $(document).on('cartUpdated', updateCartBadge);
+  });
+</script>

@@ -46,7 +46,7 @@
                                                 <input type="button" value="+" class="qty-btn increase">
                                             </div>
                                             <div class="wrap-addcart">
-                                                <button type="submit" id="add-to-cart" class="add-to-cartProduct btn btn-primary btn-addtocart addtocart-modal" name="add_cart">Thêm vào giỏ</button>
+                                                <button type="submit" id="add-to-cart" class="add-to-cartProduct btn btn-primary btn-addtocart addtocart-modal" name="add_cart" th:attr="data-id=${product.id}">Thêm vào giỏ</button>
                                                 <button type="submit" id="buy-now" class="add-to-cartProduct btn btn-dark btn-addtocart addtocart-modal" name="add">Mua ngay</button>
                                             </div>
                                         </div>
@@ -154,5 +154,70 @@
 </section>
 <section th:replace="/client/include/footer :: footer"></section>
 <div th:replace="/client/include/script :: script"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+
+        // Xử lý thêm vào giỏ hàng
+        $('#add-item-form').on('submit', function(e) {
+            e.preventDefault();
+            var form = $(this);
+            var productId = $('#add-to-cart').data('id');
+            var quantity = parseInt($('#quantity').val()) || 1;
+            console.log('Adding to cart: productId=' + productId + ', quantity=' + quantity); // Debug
+
+            $.ajax({
+                url: '/client/cart/add/' + productId,
+                type: 'POST',
+                data: {
+                    quantity: quantity
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                },
+                success: function(response) {
+                    console.log('Add to cart response:', response); // Debug
+                    if (response.status === 'success') {
+                        // Cập nhật badge
+                        if (typeof updateCartBadge === 'function') {
+                            updateCartBadge();
+                            console.log('updateCartBadge called'); // Debug
+                        } else {
+                            console.error('updateCartBadge is not defined'); // Debug
+                            // Fallback: Gọi trực tiếp endpoint
+                            $.ajax({
+                                url: '/client/cart/total-unique-quantity',
+                                type: 'GET',
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                                },
+                                success: function(badgeResponse) {
+                                    $('#cartBadge').text(badgeResponse.totalUniqueQuantity || 0);
+                                    console.log('Fallback badge update:', badgeResponse); // Debug
+                                },
+                                error: function(xhr) {
+                                    console.error('Fallback badge update failed:', xhr); // Debug
+                                    $('#cartBadge').text('0');
+                                }
+                            });
+                        }
+                        alert(response.message);
+                    } else if (response.status === 'error' && response.message.includes('đăng nhập')) {
+                        console.log('Redirecting to login'); // Debug
+                        window.location.href = '/client/login';
+                    } else {
+                        console.error('Add to cart failed:', response.message); // Debug
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Add to cart error:', xhr); // Debug
+                    alert('Lỗi khi thêm sản phẩm: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>

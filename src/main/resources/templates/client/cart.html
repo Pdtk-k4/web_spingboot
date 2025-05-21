@@ -1,19 +1,26 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="/client/include/head :: head"></head>
+<head th:replace="/client/include/head :: head">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
 <body>
 <section th:replace="/client/include/header :: header"></section>
 <div class="layoutPage-cart" id="layout-cart">
     <div class="wrapper-cart-detail">
-        <div class="container ">
-
-            <div class="heading-page">
-                <div class="header-page">
-					<h1>Giỏ hàng của bạn</h1>
-					<p class="count-cart">Có <span> 2 sản phẩm </span>trong giỏ hàng</p>
+        <div class="container">
+            <!-- Trường hợp có Transaction -->
+            <div th:if="${transaction != null}">
+                <div class="heading-page">
+                    <div class="header-page" th:if="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}">
+                        <h1>Giỏ hàng của bạn</h1>
+                        <p th:text="'Có ' + ${transaction.orders.size()} + ' sản phẩm trong giỏ hàng'" class="count-cart"></p>
+                    </div>
+                    <div class="header-page" th:unless="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}">
+                        <h1>Giỏ hàng của bạn</h1>
+                        <p class="count-cart">Có 0 sản phẩm trong giỏ hàng</p>
+                    </div>
                 </div>
-            </div>
-            <div class="row wrapbox-content-cart">
                 <div class="row wrapbox-content-cart">
                     <div class="cart-container">
                         <div class="cart-col-left">
@@ -23,58 +30,62 @@
                                         <div class="col-md-12 col-sm-12 col-xs-12">
                                             <table class="table-cart">
                                                 <thead>
-													<tr>
-														<th class="image">&nbsp;</th>
-														<th class="px-3">Tên sản phẩm</th>
-														<th class="item">Giá</th>
-														<th class="item">Số lượng</th>
-														<th class="item">Thành tiền</th>
-														<th class="remove">&nbsp;</th>
-													</tr>
-												</thead>
-                                                <tbody>
-                                                    <tr class="line-item-container">
-                                                        <td class="image">
-															<div class="product_image">
-																<a href="">
-																	<img src="/resources/uploads/" alt="">
-																</a>
-															</div>
-														</td>
-                                                        <td class="item" width="420px">
-															<h3><a href=""></a></h3>
-														</td>
-                                                        <td class="item">
-                                                            <p>
-                                                                <span class="price">161,100₫</span>
-
-                                                                <span class="del">
-																	<del>179,000₫</del>
-																	<span class="sale">0% </span>
-																</span>
-
-                                                            </p>
-                                                        </td>
-                                                        <td class="qty">
-                                                            <div class="qty quantity-partent qty-click clearfix" data-proid="" data-tstid="">
-                                                                <button type="button" class="qtyminus qty-btn">-</button>
-                                                                <input type="text" value="" class="tc line-item-qty item-quantity bg-white">
-                                                                <button type="button" class="qtyplus qty-btn">+</button>															
-                                                            </div>
-														</td>
-                                                        <td class="item">
-															<p class="">
-																<span class="line-item-total price">₫</span>
-															</p>
-														</td>
-                                                        <td class="remove">
-                                                            <a href="#" class="cart btn-remove-item" data-proid="" data-tstid="">
-                                                                <img src="//theme.hstatic.net/200000845405/1001223012/14/ic_close.png?v=414">
+                                                <tr>
+                                                    <th class="image"> </th>
+                                                    <th class="px-3">Tên sản phẩm</th>
+                                                    <th class="item">Giá</th>
+                                                    <th class="item">Số lượng</th>
+                                                    <th class="item">Thành tiền</th>
+                                                    <th class="remove"> </th>
+                                                </tr>
+                                                </thead>
+                                                <tbody th:if="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}" id="cart-items">
+                                                <tr th:each="order : ${transaction.orders}">
+                                                    <td class="image">
+                                                        <div class="product_image">
+                                                            <a th:href="@{/client/detail(id=${order.product.id})}" th:if="${order.product != null}">
+                                                                <img th:src="@{'/resources/uploads/' + ${order.product.proimage}}" th:alt="${order.product.proname}" th:if="${order.product.proimage != null}"/>
                                                             </a>
-                                                        </td>
-
-                                                    </tr>
+                                                        </div>
+                                                    </td>
+                                                    <td class="item">
+                                                        <h3>
+                                                            <a th:href="@{/client/detail(id=${order.product.id})}" th:text="${order.product != null ? order.product.proname : 'Không có tên'}" th:if="${order.product != null}"></a>
+                                                        </h3>
+                                                    </td>
+                                                    <td class="item">
+                                                        <p>
+                                                            <span class="price" th:text="${order != null and order.price != null ? #numbers.formatInteger(order.price, 0, 'COMMA') + '₫' : '0₫'}"></span>
+                                                            <span th:if="${order.product != null and order.product.prosale > 0}">
+                                                                        <del th:text="${order.product.proprice != null ? #numbers.formatInteger(order.product.proprice, 0, 'COMMA') + '₫' : '0₫'}"></del>
+                                                                        <span class="sale" th:text="' - ' + ${order.product.prosale} + '%'"></span>
+                                                                    </span>
+                                                        </p>
+                                                    </td>
+                                                    <td class="qty">
+                                                        <div class="qty quantity-partent qty-click clearfix" th:attr="data-proid=${order.product != null ? order.product.id : 0},data-tstid=${transaction.id}">
+                                                            <button type="button" class="qtyminus qty-btn">-</button>
+                                                            <input type="text" th:value="${order != null and order.quantity != null ? order.quantity : 0}" class="tc line-item-qty item-quantity bg-white" readonly>
+                                                            <button type="button" class="qtyplus qty-btn">+</button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="item">
+                                                        <p>
+                                                            <span class="line-item-total price" th:text="${order != null and order.price != null and order.quantity != null ? #numbers.formatInteger(order.price * order.quantity, 0, 'COMMA') + '₫' : '0₫'}"></span>
+                                                        </p>
+                                                    </td>
+                                                    <td class="remove">
+                                                        <a href="#" class="cart btn-remove-item" th:attr="data-proid=${order.product != null ? order.product.id : 0},data-tstid=${transaction.id}">
+                                                            <img src="//theme.hstatic.net/200000845405/1001223012/14/ic_close.png?v=414">
+                                                        </a>
+                                                    </td>
+                                                </tr>
                                                 </tbody>
+<!--                                                <tbody th:unless="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}" id="cart-items">-->
+<!--                                                <tr>-->
+<!--                                                    <td colspan="6">Giỏ hàng trống</td>-->
+<!--                                                </tr>-->
+<!--                                                </tbody>-->
                                             </table>
                                         </div>
                                     </div>
@@ -83,7 +94,7 @@
                                             <div class="sidebox-group">
                                                 <h3>Ghi chú đơn hàng</h3>
                                                 <div class="checkout-note clearfix">
-                                                    <textarea id="note" name="note" rows="4" placeholder="Ghi chú"></textarea>
+                                                    <textarea id="note" name="note" rows="4" placeholder="Ghi chú" th:value="${transaction != null ? transaction.note : ''}"></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -91,19 +102,20 @@
                                             <div class="sidebox-order">
                                                 <div class="sidebox-order-inner">
                                                     <div class="sidebox-order_title">
-														<h3>Thông tin đơn hàng</h3>
-													</div>
+                                                        <h3>Thông tin đơn hàng</h3>
+                                                    </div>
                                                     <div class="sidebox-order_total">
-														<p>Tổng tiền:<span class="total-price">₫</span></p>
-													</div>
+                                                        <p>Tổng tiền: <span class="total-price" th:text="${totalPrice != null ? #numbers.formatInteger(totalPrice, 0, 'COMMA') + '₫' : '0₫'}"></span></p>
+                                                    </div>
                                                     <div class="sidebox-order_action">
-														<a href="" class="btn btn-dark btncart-checkout">THANH TOÁN</a>
-														<p class="link-continue">
-															<a href="/DahitaBook">
-																<i class="fa fa-reply"></i> Tiếp tục mua hàng
-															</a>
-														</p>
-													</div>
+                                                        <a th:href="@{/client/checkouts(id=${transaction.id})}" class="btn btn-dark btncart-checkout" th:unless="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}" style="display:none;">THANH TOÁN</a>
+                                                        <a th:href="@{/client/checkouts(id=${transaction.id})}" class="btn btn-dark btncart-checkout" th:if="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}">THANH TOÁN</a>
+                                                        <p class="link-continue">
+                                                            <a href="/DahitaBook">
+                                                                <i class="fa fa-reply"></i> Tiếp tục mua hàng
+                                                            </a>
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -114,17 +126,140 @@
                     </div>
                 </div>
             </div>
-            <div class="heading-page">
-                <div class="header-page">
-					<h1>Giỏ hàng của bạn</h1>
-					<p class="count-cart">Có <span>0 sản phẩm </span>trong giỏ hàng</p>
+            <!-- Trường hợp không có Transaction -->
+            <div th:unless="${transaction != null}">
+                <div class="heading-page">
+                    <div class="header-page">
+                        <h1>Giỏ hàng của bạn</h1>
+                        <p class="count-cart">Có <span>0 sản phẩm </span>trong giỏ hàng</p>
+                    </div>
                 </div>
+                <a href="/DahitaBook"><span>Tiếp tục mua hàng</span></a>
             </div>
-            <a href="/DahitaBook"><span>Tiếp tục mua hàng</span></a>
         </div>
     </div>
 </div>
 <section th:replace="/client/include/footer :: footer"></section>
 <div th:replace="/client/include/script :: script"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Xử lý tăng giảm số lượng
+        $('.qtyplus').click(function() {
+            updateQuantity($(this), 1);
+        });
+
+        $('.qtyminus').click(function() {
+            updateQuantity($(this), -1);
+        });
+
+        function updateQuantity(button, change) {
+            var qtyContainer = button.closest('.qty');
+            var input = qtyContainer.find('.item-quantity');
+            var currentQty = parseInt(input.val()) || 0;
+            var newQty = currentQty + change;
+            if (newQty < 1) {
+                alert('Số lượng tối thiểu là 1');
+                return;
+            }
+            var productId = qtyContainer.data('proid') || 0;
+            var transactionId = qtyContainer.data('tstid') || 0;
+
+            $.ajax({
+                url: '/client/cart/update/' + productId,
+                type: 'POST',
+                data: {
+                    quantity: newQty,
+                    transactionId: transactionId
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        input.val(response.quantity);
+                        var lineItemTotal = qtyContainer.closest('tr').find('.line-item-total');
+                        lineItemTotal.text(response.lineItemTotal.toLocaleString('vi-VN') + '₫');
+                        $('.total-price').text(response.totalPrice.toLocaleString('vi-VN') + '₫');
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Lỗi khi cập nhật số lượng: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+                }
+            });
+        }
+
+        // Xử lý xóa sản phẩm
+        $('.btn-remove-item').click(function(e) {
+            e.preventDefault();
+            var removeButton = $(this);
+            var productId = removeButton.data('proid') || 0;
+            var transactionId = removeButton.data('tstid') || 0;
+
+            if (confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                $.ajax({
+                    url: '/client/cart/remove/' + productId,
+                    type: 'POST',
+                    data: {
+                        transactionId: transactionId
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                    },
+                    success: function(response) {
+                        console.log('Remove item response:', response); // Debug
+                        if (response.status === 'success') {
+                            // Xóa dòng sản phẩm khỏi bảng
+                            removeButton.closest('tr').remove();
+                            // Cập nhật tổng tiền
+                            $('.total-price').text(response.totalPrice.toLocaleString('vi-VN') + '₫');
+                            // Cập nhật số lượng sản phẩm và badge
+                            var cartCount = response.totalUniqueQuantity !== undefined ? response.totalUniqueQuantity : response.cartCount;
+                            $('.count-cart').text('Có ' + (cartCount || 0) + ' sản phẩm trong giỏ hàng');
+                            if (response.totalUniqueQuantity !== undefined) {
+                                $('#cartBadge').text(cartCount || 0);
+                            } else if (typeof updateCartBadge === 'function') {
+                                updateCartBadge();
+                                console.log('updateCartBadge called'); // Debug
+                            } else {
+                                console.error('updateCartBadge is not defined'); // Debug
+                                // Fallback: Gọi trực tiếp endpoint
+                                $.ajax({
+                                    url: '/client/cart/total-unique-quantity',
+                                    type: 'GET',
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                                    },
+                                    success: function(badgeResponse) {
+                                        $('#cartBadge').text(badgeResponse.totalUniqueQuantity || 0);
+                                        console.log('Fallback badge update:', badgeResponse); // Debug
+                                    },
+                                    error: function(xhr) {
+                                        console.error('Fallback badge update failed:', xhr); // Debug
+                                        $('#cartBadge').text('0');
+                                    }
+                                });
+                            }
+                            // Nếu giỏ hàng rỗng và Transaction đã bị xóa
+                            if (response.isCartEmpty) {
+                                // Tải lại trang để Thymeleaf render lại với transaction = null
+                                window.location.reload();
+                            }
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Remove item error:', xhr); // Debug
+                        alert('Lỗi khi xóa sản phẩm: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+                    }
+                });
+            }
+        });
+    });
+</script>
 </body>
 </html>
