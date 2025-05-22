@@ -102,7 +102,7 @@
                     <a th:href="@{/client/logout}" class="logout">Đăng xuất</a>
                 </div>
             </div>
-            <form th:action="@{/client/order}" method="POST">
+            <form id="orderForm" th:action="@{/client/order}" method="POST">
                 <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <input type="hidden" name="transactionId" th:value="${transaction.id}"/>
                 <div class="input-group">
@@ -126,6 +126,11 @@
                         <input type="radio" name="payment" value="cod" checked>
                         <img src="https://hstatic.net/0/0/global/design/seller/image/payment/cod.svg?v=6" alt="COD">
                         <span style="font-size: 14px;">Thanh toán khi giao hàng (COD)</span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment" value="vnpay">
+                        <img src="https://sandbox.vnpayment.vn/paymentv2/images/logo.png" alt="VNPay" style="width: 40px; height: auto;">
+                        <span style="font-size: 14px;">Thanh toán qua VNPay</span>
                     </label>
                 </div>
                 <button type="submit" name="submit" class="btn-submit">Đặt hàng</button>
@@ -183,6 +188,37 @@
                 }
             });
         }
+
+        // Xử lý form khi chọn VNPay
+        $('#orderForm').on('submit', function(e) {
+            var paymentMethod = $('input[name="payment"]:checked').val();
+            var transactionId = $('input[name="transactionId"]').val();
+            var totalPrice = parseInt($('.total-price').text().replace(/[^0-9]/g, '')) || 0;
+
+            if (paymentMethod === 'vnpay') {
+                e.preventDefault(); // Ngăn form submit mặc định
+                $.ajax({
+                    url: '/api/vnpay/create-payment',
+                    type: 'POST',
+                    data: {
+                        amount: totalPrice,
+                        orderId: transactionId,
+                        orderInfo: 'Thanh toan don hang ' + transactionId
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                    },
+                    success: function(response) {
+                        // Chuyển hướng đến URL thanh toán VNPay
+                        window.location.href = response;
+                    },
+                    error: function(xhr) {
+                        alert('Lỗi khi tạo URL thanh toán VNPay: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+                    }
+                });
+            }
+            // Nếu là COD, để form submit bình thường
+        });
     });
 </script>
 </body>
