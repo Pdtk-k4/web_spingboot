@@ -34,8 +34,8 @@
                                     </div>
                                     <p class="product-type" th:text="${product.category != null ? product.category.catname : 'Không xác định'}">Thể loại sách</p>
                                     <div class="product-price" id="price-preview">
-                                        <span class="pro-price" th:text="${#numbers.formatInteger((product.proprice * (100 - (product.prosale != null ? product.prosale : 0)) / 100), 0, 'COMMA')} + '₫'">90.000₫</span>
-                                        <del th:if="${product.prosale != null and product.prosale > 0}" th:text="${#numbers.formatInteger(product.proprice, 0, 'COMMA')} + '₫'">100.000₫</del>
+                                        <span class="pro-price" th:text="${#numbers.formatInteger((product.proprice * (100 - (product.prosale != null ? product.prosale : 0)) / 100), 0, 'COMMA')} + '₫'"></span>
+                                        <del th:if="${product.prosale != null and product.prosale > 0}" th:text="${#numbers.formatInteger(product.proprice, 0, 'COMMA')} + '₫'"></del>
                                     </div>
                                     <form id="add-item-form" th:action="@{/client/cart/add}" method="post" class="variants clearfix">
                                         <input type="hidden" name="id" th:value="${product.id}">

@@ -16,11 +16,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.logging.Logger;
 
 @Controller
 @RequestMapping("/client")
 public class CartController {
+
+    private static final Logger logger = Logger.getLogger(CartController.class.getName());
 
     @Autowired
     private TransactionService transactionService;
@@ -28,7 +30,6 @@ public class CartController {
     @Autowired
     private ProductService productService;
 
-    // Phương thức cập nhật để lấy số lượng sản phẩm độc nhất
     @GetMapping("/cart/count")
     public ResponseEntity<Map<String, Integer>> getCartCount(@AuthenticationPrincipal CustomUserDetail userDetail) {
         Map<String, Integer> response = new HashMap<>();
@@ -48,12 +49,12 @@ public class CartController {
             response.put("count", distinctProductCount);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.severe("Error in getCartCount: " + e.getMessage());
             response.put("count", 0);
             return ResponseEntity.ok(response);
         }
     }
 
-    // Thêm endpoint để lấy số lượng sản phẩm duy nhất
     @GetMapping("/cart/total-unique-quantity")
     public ResponseEntity<Map<String, Integer>> getTotalUniqueQuantity(@AuthenticationPrincipal CustomUserDetail userDetail) {
         Map<String, Integer> response = new HashMap<>();
@@ -73,6 +74,7 @@ public class CartController {
             response.put("totalUniqueQuantity", totalUniqueQuantity);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.severe("Error in getTotalUniqueQuantity: " + e.getMessage());
             response.put("totalUniqueQuantity", 0);
             return ResponseEntity.ok(response);
         }
@@ -80,7 +82,9 @@ public class CartController {
 
     @GetMapping("/cart")
     public String showCart(@AuthenticationPrincipal CustomUserDetail userDetail, Model model) {
+        logger.info("Accessing /client/cart");
         if (userDetail == null) {
+            logger.warning("User not authenticated, redirecting to login");
             return "redirect:/client/login";
         }
         try {
@@ -89,6 +93,7 @@ public class CartController {
             try {
                 transaction = transactionService.getCartTransaction(user);
             } catch (Exception e) {
+                logger.severe("Error fetching transaction: " + e.getMessage());
                 model.addAttribute("transaction", null);
                 model.addAttribute("totalPrice", 0);
                 model.addAttribute("totalUniqueQuantity", 0);
@@ -105,7 +110,7 @@ public class CartController {
                 int totalPrice = transaction.getOrders().stream()
                         .mapToInt(order -> {
                             if (order == null || order.getPrice() == null || order.getQuantity() == null) return 0;
-                            return order.getPrice() * order.getQuantity();
+                            return order.getPrice() * order.getQuantity(); // Giá đã giảm từ TransactionService
                         })
                         .sum();
                 int totalUniqueQuantity = (int) transaction.getOrders().stream()
@@ -119,6 +124,7 @@ public class CartController {
             }
             return "client/cart";
         } catch (Exception e) {
+            logger.severe("Error in showCart: " + e.getMessage());
             model.addAttribute("error", "Không tìm thấy giỏ hàng: " + e.getMessage());
             model.addAttribute("transaction", null);
             model.addAttribute("totalPrice", 0);
@@ -135,7 +141,7 @@ public class CartController {
             HttpSession session
     ) {
         Map<String, String> response = new HashMap<>();
-        System.out.println("Yêu cầu thêm vào giỏ hàng: productId=" + productId + ", quantity=" + quantity);
+        logger.info("Add to cart: productId=" + productId + ", quantity=" + quantity);
         if (userDetail == null) {
             session.setAttribute("pendingProductId", productId);
             session.setAttribute("pendingQuantity", quantity);
@@ -150,6 +156,7 @@ public class CartController {
             response.put("message", "Sản phẩm đã được thêm vào giỏ hàng");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.severe("Error adding product to cart: " + e.getMessage());
             response.put("status", "error");
             response.put("message", "Lỗi khi thêm sản phẩm: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
@@ -184,15 +191,18 @@ public class CartController {
             int totalPrice = transaction.getOrders().stream()
                     .mapToInt(order -> {
                         if (order == null || order.getPrice() == null || order.getQuantity() == null) return 0;
-                        return order.getPrice() * order.getQuantity();
+                        return order.getPrice() * order.getQuantity(); // Giá đã giảm
                     })
                     .sum();
+            int lineItemTotal = transaction.getOrders().stream()
+                    .filter(order -> order != null && order.getProduct() != null && order.getProduct().getId().equals(productId))
+                    .findFirst()
+                    .map(order -> order.getPrice() * quantity) // Giá đã giảm
+                    .orElse(0);
             response.put("status", "success");
             response.put("message", "Cập nhật số lượng thành công");
             response.put("quantity", quantity);
-            response.put("lineItemTotal", quantity * transaction.getOrders().stream()
-                    .filter(order -> order != null && order.getProduct() != null && order.getProduct().getId().equals(productId))
-                    .findFirst().map(order -> order.getPrice()).orElse(0));
+            response.put("lineItemTotal", lineItemTotal);
             response.put("totalPrice", totalPrice);
             response.put("totalUniqueQuantity", (int) transaction.getOrders().stream()
                     .filter(order -> order != null && order.getProduct() != null)
@@ -201,6 +211,7 @@ public class CartController {
                     .count());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.severe("Error updating cart item quantity: " + e.getMessage());
             response.put("status", "error");
             response.put("message", "Lỗi khi cập nhật số lượng: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
@@ -235,7 +246,6 @@ public class CartController {
                 throw new IllegalArgumentException("Transaction ID không hợp lệ");
             }
             transactionService.removeOrder(transaction, productId);
-            // Kiểm tra lại transaction sau khi xóa
             transaction = transactionService.getCartTransaction(user);
             if (transaction == null || transaction.getOrders() == null || transaction.getOrders().isEmpty()) {
                 response.put("status", "success");
@@ -249,7 +259,7 @@ public class CartController {
                 int totalPrice = transaction.getOrders().stream()
                         .mapToInt(order -> {
                             if (order == null || order.getPrice() == null || order.getQuantity() == null) return 0;
-                            return order.getPrice() * order.getQuantity();
+                            return order.getPrice() * order.getQuantity(); // Giá đã giảm
                         })
                         .sum();
                 int totalUniqueQuantity = (int) transaction.getOrders().stream()
@@ -266,6 +276,7 @@ public class CartController {
             }
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.severe("Error removing cart item: " + e.getMessage());
             response.put("status", "error");
             response.put("message", "Lỗi khi xóa sản phẩm: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);

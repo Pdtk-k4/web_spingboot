@@ -45,7 +45,7 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction transaction = new Transaction();
         transaction.setUser(user);
         transaction.setTotalMoney(0);
-        transaction.setNote(""); // Gán giá trị mặc định
+        transaction.setNote("");
         transaction.setOrders(new HashSet<>());
         Transaction saved = transactionsRepository.save(transaction);
         logger.debug("Created new transaction: {}", saved.getId());
@@ -55,26 +55,33 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void addProductToTransaction(User user, Product product, int quantity) {
         logger.debug("Adding product {} with quantity {} to transaction for user: {}", product.getId(), quantity, user.getId());
-        // Kiểm tra xem có Transaction nào cho user không
+        if (product == null) {
+            logger.error("Product is null for user: {}", user.getId());
+            throw new IllegalArgumentException("Sản phẩm không hợp lệ");
+        }
+
         List<Transaction> userTransactions = transactionsRepository.findByUser(user);
         Transaction transaction;
         if (userTransactions.isEmpty()) {
             logger.debug("No transactions found for user: {}, creating new transaction", user.getId());
             transaction = createCartTransaction(user);
         } else {
-            // Lấy Transaction đầu tiên
             transaction = userTransactions.get(0);
             logger.debug("Using existing transaction: {}", transaction.getId());
         }
 
-        // Thêm hoặc cập nhật Order
+        // Tính giá đã giảm
+        int originalPrice = product.getProprice();
+        int discountPercentage = product.getProsale() != null ? product.getProsale() : 0;
+        int discountedPrice = originalPrice - (originalPrice * discountPercentage / 100);
+
         Optional<Order> existingOrder = transaction.getOrders().stream()
-                .filter(order -> order.getProduct().getId().equals(product.getId()))
+                .filter(order -> order.getProduct() != null && order.getProduct().getId().equals(product.getId()))
                 .findFirst();
         if (existingOrder.isPresent()) {
             Order order = existingOrder.get();
             order.setQuantity(order.getQuantity() + quantity);
-            order.setPrice(product.getProprice());
+            order.setPrice(discountedPrice); // Lưu giá đã giảm
             orderRepository.save(order);
             logger.debug("Updated existing order: {}", order.getId());
         } else {
@@ -82,7 +89,7 @@ public class TransactionServiceImpl implements TransactionService {
             order.setTransaction(transaction);
             order.setProduct(product);
             order.setQuantity(quantity);
-            order.setPrice(product.getProprice());
+            order.setPrice(discountedPrice); // Lưu giá đã giảm
             transaction.getOrders().add(order);
             orderRepository.save(order);
             logger.debug("Created new order: {}", order.getId());
@@ -111,11 +118,16 @@ public class TransactionServiceImpl implements TransactionService {
             throw new IllegalArgumentException("Số lượng phải lớn hơn hoặc bằng 1");
         }
         Optional<Order> existingOrder = transaction.getOrders().stream()
-                .filter(order -> order.getProduct().getId().equals(productId))
+                .filter(order -> order.getProduct() != null && order.getProduct().getId().equals(productId))
                 .findFirst();
         if (existingOrder.isPresent()) {
             Order order = existingOrder.get();
             order.setQuantity(quantity);
+            // Cập nhật giá đã giảm
+            int originalPrice = order.getProduct().getProprice();
+            int discountPercentage = order.getProduct().getProsale() != null ? order.getProduct().getProsale() : 0;
+            int discountedPrice = originalPrice - (originalPrice * discountPercentage / 100);
+            order.setPrice(discountedPrice);
             orderRepository.save(order);
             updateTotalMoney(transaction);
             transactionsRepository.save(transaction);
@@ -129,7 +141,7 @@ public class TransactionServiceImpl implements TransactionService {
     public void removeOrder(Transaction transaction, Long productId) {
         logger.debug("Removing product {} from transaction: {}", productId, transaction.getId());
         Optional<Order> orderToRemove = transaction.getOrders().stream()
-                .filter(order -> order.getProduct().getId().equals(productId))
+                .filter(order -> order.getProduct() != null && order.getProduct().getId().equals(productId))
                 .findFirst();
         if (orderToRemove.isPresent()) {
             Order order = orderToRemove.get();
@@ -147,7 +159,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void deleteTransactionIfEmpty(Transaction transaction) {
         logger.debug("Checking if transaction {} is empty", transaction.getId());
-        if (transaction.getOrders().isEmpty()) {
+        if (transaction.getOrders() == null || transaction.getOrders().isEmpty()) {
             transactionsRepository.delete(transaction);
             logger.debug("Deleted empty transaction: {}", transaction.getId());
         }
@@ -178,7 +190,10 @@ public class TransactionServiceImpl implements TransactionService {
     private void updateTotalMoney(Transaction transaction) {
         logger.debug("Updating total money for transaction: {}", transaction.getId());
         int total = transaction.getOrders().stream()
-                .mapToInt(order -> order.getPrice() * order.getQuantity())
+                .mapToInt(order -> {
+                    if (order == null || order.getPrice() == null || order.getQuantity() == null) return 0;
+                    return order.getPrice() * order.getQuantity();
+                })
                 .sum();
         transaction.setTotalMoney(total);
         logger.debug("Total money updated to: {}", total);
@@ -193,13 +208,11 @@ public class TransactionServiceImpl implements TransactionService {
             throw new IllegalStateException("Giao dịch trống, không thể đặt hàng");
         }
 
-        // Tính tổng số lượng sản phẩm
         int totalQuantity = transaction.getOrders().stream()
                 .mapToInt(Order::getQuantity)
                 .sum();
         logger.debug("Total quantity: {}", totalQuantity);
 
-        // Tạo bản ghi trong tbl_inbox
         Inbox inbox = new Inbox();
         inbox.setUser(transaction.getUser());
         inbox.setQuantity(totalQuantity);
@@ -207,14 +220,13 @@ public class TransactionServiceImpl implements TransactionService {
         inbox.setCustomerName(name);
         inbox.setCustomerAddress(address);
         inbox.setCustomerPhone(phone);
-        inbox.setStatus(false); // Chưa xử lý
-        inbox.setTransaction(null); // Cho phép null để xóa Transaction sau
+        inbox.setStatus(false);
+        inbox.setTransaction(null);
 
         try {
             Inbox savedInbox = inboxRepository.save(inbox);
             logger.debug("Saved inbox for transaction: {}", transactionId);
 
-            // Lưu DetailInbox cho mỗi Order
             for (Order order : transaction.getOrders()) {
                 DetailInbox detailInbox = new DetailInbox();
                 detailInbox.setProduct(order.getProduct());
@@ -225,7 +237,6 @@ public class TransactionServiceImpl implements TransactionService {
                 logger.debug("Saved DetailInbox for product: {} and inbox: {}", order.getProduct().getId(), savedInbox.getId());
             }
 
-            // Xóa tất cả Order trong Transaction
             transaction.getOrders().forEach(order -> {
                 logger.debug("Deleting order: {}", order.getId());
                 orderRepository.delete(order);
@@ -234,7 +245,6 @@ public class TransactionServiceImpl implements TransactionService {
             transactionsRepository.save(transaction);
             logger.debug("Cleared all orders for transaction: {}", transactionId);
 
-            // Xóa Transaction
             transactionsRepository.delete(transaction);
             logger.debug("Deleted transaction: {}", transactionId);
         } catch (Exception e) {

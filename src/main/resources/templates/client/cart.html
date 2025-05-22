@@ -31,12 +31,12 @@
                                             <table class="table-cart">
                                                 <thead>
                                                 <tr>
-                                                    <th class="image"> </th>
+                                                    <th class="image"> </th>
                                                     <th class="px-3">Tên sản phẩm</th>
                                                     <th class="item">Giá</th>
                                                     <th class="item">Số lượng</th>
                                                     <th class="item">Thành tiền</th>
-                                                    <th class="remove"> </th>
+                                                    <th class="remove"> </th>
                                                 </tr>
                                                 </thead>
                                                 <tbody th:if="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}" id="cart-items">
@@ -57,9 +57,9 @@
                                                         <p>
                                                             <span class="price" th:text="${order != null and order.price != null ? #numbers.formatInteger(order.price, 0, 'COMMA') + '₫' : '0₫'}"></span>
                                                             <span class="del" th:if="${order.product != null and order.product.prosale > 0}">
-                                                                        <del th:text="${order.product.proprice != null ? #numbers.formatInteger(order.product.proprice, 0, 'COMMA') + '₫' : '0₫'}"></del>
-                                                                        <span class="sale" th:text="' - ' + ${order.product.prosale} + '%'"></span>
-                                                                    </span>
+                                                                <del th:text="${order.product.proprice != null ? #numbers.formatInteger(order.product.proprice, 0, 'COMMA') + '₫' : '0₫'}"></del>
+                                                                <span class="sale" th:text="' - ' + ${order.product.prosale} + '%'"></span>
+                                                            </span>
                                                         </p>
                                                     </td>
                                                     <td class="qty">
@@ -81,11 +81,6 @@
                                                     </td>
                                                 </tr>
                                                 </tbody>
-<!--                                                <tbody th:unless="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}" id="cart-items">-->
-<!--                                                <tr>-->
-<!--                                                    <td colspan="6">Giỏ hàng trống</td>-->
-<!--                                                </tr>-->
-<!--                                                </tbody>-->
                                             </table>
                                         </div>
                                     </div>
@@ -210,23 +205,19 @@
                         'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
                     },
                     success: function(response) {
-                        console.log('Remove item response:', response); // Debug
+                        console.log('Remove item response:', response);
                         if (response.status === 'success') {
-                            // Xóa dòng sản phẩm khỏi bảng
                             removeButton.closest('tr').remove();
-                            // Cập nhật tổng tiền
                             $('.total-price').text(response.totalPrice.toLocaleString('vi-VN') + '₫');
-                            // Cập nhật số lượng sản phẩm và badge
                             var cartCount = response.totalUniqueQuantity !== undefined ? response.totalUniqueQuantity : response.cartCount;
                             $('.count-cart').text('Có ' + (cartCount || 0) + ' sản phẩm trong giỏ hàng');
                             if (response.totalUniqueQuantity !== undefined) {
                                 $('#cartBadge').text(cartCount || 0);
                             } else if (typeof updateCartBadge === 'function') {
                                 updateCartBadge();
-                                console.log('updateCartBadge called'); // Debug
+                                console.log('updateCartBadge called');
                             } else {
-                                console.error('updateCartBadge is not defined'); // Debug
-                                // Fallback: Gọi trực tiếp endpoint
+                                console.error('updateCartBadge is not defined');
                                 $.ajax({
                                     url: '/client/cart/total-unique-quantity',
                                     type: 'GET',
@@ -235,17 +226,15 @@
                                     },
                                     success: function(badgeResponse) {
                                         $('#cartBadge').text(badgeResponse.totalUniqueQuantity || 0);
-                                        console.log('Fallback badge update:', badgeResponse); // Debug
+                                        console.log('Fallback badge update:', badgeResponse);
                                     },
                                     error: function(xhr) {
-                                        console.error('Fallback badge update failed:', xhr); // Debug
+                                        console.error('Fallback badge update failed:', xhr);
                                         $('#cartBadge').text('0');
                                     }
                                 });
                             }
-                            // Nếu giỏ hàng rỗng và Transaction đã bị xóa
                             if (response.isCartEmpty) {
-                                // Tải lại trang để Thymeleaf render lại với transaction = null
                                 window.location.reload();
                             }
                         } else {
@@ -253,7 +242,7 @@
                         }
                     },
                     error: function(xhr) {
-                        console.error('Remove item error:', xhr); // Debug
+                        console.error('Remove item error:', xhr);
                         alert('Lỗi khi xóa sản phẩm: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
                     }
                 });

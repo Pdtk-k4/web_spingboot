@@ -29,7 +29,7 @@
                                             </div>
                                             <a th:href="@{'/client/detail?id=' + ${product.id}}"><img style="max-height: 240px;" th:src="@{'/resources/uploads/' + ${product.proimage}}" alt="Product Image"></a>
                                             <div class="button-add d-none d-md-flex">
-                                                <button title="Thêm vào giỏ" data-tooltip="Thêm vào giỏ hàng" onclick=""><i class="fa-solid fa-cart-plus"></i></button>
+                                                <button title="Thêm vào giỏ" data-tooltip="Thêm vào giỏ hàng" th:onclick="'addToCart(' + ${product.id} + ')'"><i class="fa-solid fa-cart-plus"></i></button>
                                                 <a th:href="@{'/client/detail?id=' + ${product.id}}" data-tooltip="Chi tiết"><i class="fa-regular fa-eye"></i></a>
                                             </div>
                                         </div>
