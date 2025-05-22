@@ -56,7 +56,7 @@
                                                     <td class="item">
                                                         <p>
                                                             <span class="price" th:text="${order != null and order.price != null ? #numbers.formatInteger(order.price, 0, 'COMMA') + '₫' : '0₫'}"></span>
-                                                            <span th:if="${order.product != null and order.product.prosale > 0}">
+                                                            <span class="del" th:if="${order.product != null and order.product.prosale > 0}">
                                                                         <del th:text="${order.product.proprice != null ? #numbers.formatInteger(order.product.proprice, 0, 'COMMA') + '₫' : '0₫'}"></del>
                                                                         <span class="sale" th:text="' - ' + ${order.product.prosale} + '%'"></span>
                                                                     </span>

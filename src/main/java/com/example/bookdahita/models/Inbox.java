@@ -11,8 +11,8 @@ public class Inbox {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "idtst", nullable = false)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "idtst")
     private Transaction transaction;
 
     @ManyToOne

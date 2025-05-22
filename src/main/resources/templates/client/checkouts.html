@@ -1,8 +1,7 @@
-<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="/client/include/head :: head">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <section th:replace="/client/include/header :: header"></section>
@@ -11,10 +10,14 @@
         <div class="col-12 col-lg-7">
             <div class="heading-page">
                 <div class="header-page">
-					<h1>Thông tin đơn hàng</h1>
+                    <h1>Thông tin đơn hàng</h1>
                 </div>
             </div>
-            <div class="row wrapbox-content-cart">
+            <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${transaction == null}" class="alert alert-danger">
+                Không tìm thấy đơn hàng. Vui lòng kiểm tra lại giỏ hàng.
+            </div>
+            <div th:if="${transaction != null}">
                 <div class="row wrapbox-content-cart">
                     <div class="cart-container">
                         <div class="cart-col-left">
@@ -25,13 +28,13 @@
                                             <table class="table-cart">
                                                 <thead>
                                                 <tr>
-                                                    <th class="image"> </th>
+                                                    <th class="image"> </th>
                                                     <th class="px-3">Tên sản phẩm</th>
                                                     <th class="item">Số lượng</th>
                                                     <th class="item">Thành tiền</th>
                                                 </tr>
                                                 </thead>
-                                                <tbody th:if="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}" id="cart-items">
+                                                <tbody th:if="${transaction.orders != null and not #lists.isEmpty(transaction.orders)}" id="cart-items">
                                                 <tr th:each="order : ${transaction.orders}">
                                                     <td class="image">
                                                         <div class="product_image">
@@ -59,6 +62,11 @@
                                                     </td>
                                                 </tr>
                                                 </tbody>
+                                                <tbody th:unless="${transaction.orders != null and not #lists.isEmpty(transaction.orders)}">
+                                                <tr>
+                                                    <td colspan="4" class="text-center">Không có sản phẩm trong đơn hàng</td>
+                                                </tr>
+                                                </tbody>
                                             </table>
                                         </div>
                                     </div>
@@ -82,20 +90,21 @@
                         </div>
                     </div>
                 </div>
+                <a th:href="@{/client/index}"><span>Tiếp tục mua hàng</span></a>
             </div>
-
-            <a th:href="@{/client/index}"><span>Tiếp tục mua hàng</span></a>
         </div>
-        <div class="col-12 col-lg-5">
+        <div class="col-12 col-lg-5" th:if="${transaction != null}">
             <h3>Thông tin giao hàng</h3>
-            <div class="user-info">
+            <div class="user-info" th:if="${transaction != null}">
                 <div class="user-avatar" style="background-image: url(//www.gravatar.com/avatar/6d41783bd3f3e6a071476622e6024455.jpg?s=100&d=blank);filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='//www.gravatar.com/avatar/6d41783bd3f3e6a071476622e6024455.jpg?s=100&d=blank')">👤</div>
                 <div class="user-details">
                     <span sec:authentication="name" th:text="${#authentication.principal.user.email}"></span><br>
                     <a th:href="@{/client/logout}" class="logout">Đăng xuất</a>
                 </div>
             </div>
-            <form action="" method="POST">
+            <form th:action="@{/client/order}" method="POST">
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <input type="hidden" name="transactionId" th:value="${transaction.id}"/>
                 <div class="input-group">
                     <select name="address">
                         <option>Thêm địa chỉ mới...</option>
@@ -103,19 +112,20 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <input type="text" name="name" placeholder="Họ và tên" required value=''>
+                    <input type="text" name="name" placeholder="Họ và tên" required th:value="${#authentication.principal.user.fullName}">
                 </div>
                 <div class="input-group">
-                    <input type="text" name="phone" placeholder="Số điện thoại" required value=''>
+                    <input type="text" name="phone" placeholder="Số điện thoại" required>
                 </div>
                 <div class="input-group">
-                    <input type="text" name="address" placeholder="Địa chỉ" required value=''>
+                    <input type="text" name="addressDetail" placeholder="Địa chỉ" required>
                 </div>
                 <div class="payment-method">
                     <h3>Phương thức thanh toán</h3>
                     <label class="payment-option">
                         <input type="radio" name="payment" value="cod" checked>
-                        <img  src="https://hstatic.net/0/0/global/design/seller/image/payment/cod.svg?v=6" alt="COD"><span  style="font-size: 14px;">Thanh toán khi giao hàng (COD)</span>
+                        <img src="https://hstatic.net/0/0/global/design/seller/image/payment/cod.svg?v=6" alt="COD">
+                        <span style="font-size: 14px;">Thanh toán khi giao hàng (COD)</span>
                     </label>
                 </div>
                 <button type="submit" name="submit" class="btn-submit">Đặt hàng</button>
@@ -128,7 +138,6 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Xử lý tăng giảm số lượng
         $('.qtyplus').click(function() {
             updateQuantity($(this), 1);
         });
@@ -178,4 +187,3 @@
 </script>
 </body>
 </html>
-

@@ -1,6 +1,5 @@
 package com.example.bookdahita.models;
 
-import com.example.bookdahita.models.User;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,11 +22,11 @@ public class Transaction {
     @Column(name = "tstnote", nullable = false, length = 355)
     private String note;
 
-    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL)
-    private Set<Order> orders;
+    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Order> orders = new HashSet<>();
 
-    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL)
-    private Set<Inbox> inboxes;
+    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Inbox> inboxes = new HashSet<>();
 
     // Constructors
     public Transaction() {}
@@ -36,6 +35,8 @@ public class Transaction {
         this.user = user;
         this.totalMoney = totalMoney;
         this.note = note;
+        this.orders = new HashSet<>();
+        this.inboxes = new HashSet<>();
     }
 
     // Getters and Setters

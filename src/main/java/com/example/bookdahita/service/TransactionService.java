@@ -12,4 +12,6 @@ public interface TransactionService {
     void removeOrder(Transaction transaction, Long productId);
     void deleteTransactionIfEmpty(Transaction transaction);
     Transaction getTransactionById(Long id);
+    void placeOrder(Long transactionId, String name, String phone, String address, String paymentMethod);
+    void deleteTransaction(Long transactionId);
 }
