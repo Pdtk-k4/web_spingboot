@@ -3,13 +3,14 @@ package com.example.bookdahita.service.Ipml;
 import com.example.bookdahita.models.Role;
 import com.example.bookdahita.models.User;
 import com.example.bookdahita.models.UserRole;
-import com.example.bookdahita.repositoty.RoleRepository;
-import com.example.bookdahita.repositoty.UserRepository;
+import com.example.bookdahita.repository.RoleRepository;
+import com.example.bookdahita.repository.UserRepository;
 import com.example.bookdahita.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,6 +49,8 @@ public class UserServiceImpl implements UserService {
         if (user.getAddress() == null) {
             user.setAddress("");
         }
+
+        user.setCreatedDate(LocalDateTime.now());
 
         // Gán vai trò mặc định "USER"
         Role userRole = roleRepository.findByNameRole("USER");

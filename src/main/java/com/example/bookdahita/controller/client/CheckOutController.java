@@ -1,10 +1,9 @@
 package com.example.bookdahita.controller.client;
 
 import com.example.bookdahita.models.CustomUserDetail;
-import com.example.bookdahita.models.Inbox;
 import com.example.bookdahita.models.Transaction;
 import com.example.bookdahita.models.User;
-import com.example.bookdahita.repositoty.InboxRepository;
+import com.example.bookdahita.repository.InboxRepository;
 import com.example.bookdahita.service.TransactionService;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;

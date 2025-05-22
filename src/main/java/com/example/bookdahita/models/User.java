@@ -1,6 +1,7 @@
 package com.example.bookdahita.models;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -29,13 +30,16 @@ public class User {
     @Column(name = "address")
     private String address;
 
+    @Column(name = "created_date")
+    private LocalDateTime createdDate;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserRole> userRoles;
 
     public User() {
     }
 
-    public User(Long id, String userName, String pass, String fullName, String email, String phone, String address, Set<UserRole> userRoles) {
+    public User(Long id, String userName, String pass, String fullName, String email, String phone, String address, LocalDateTime createdDate, Set<UserRole> userRoles) {
         this.id = id;
         this.userName = userName;
         this.pass = pass;
@@ -43,6 +47,7 @@ public class User {
         this.email = email;
         this.phone = phone;
         this.address = address;
+        this.createdDate = createdDate;
         this.userRoles = userRoles;
     }
 
@@ -100,6 +105,14 @@ public class User {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 
     public Set<UserRole> getUserRoles() {

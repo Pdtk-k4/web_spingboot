@@ -1,6 +1,7 @@
 package com.example.bookdahita.models;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,6 +23,9 @@ public class Transaction {
     @Column(name = "tstnote", nullable = false, length = 355)
     private String note;
 
+    @Column(name = "tstdate")
+    private LocalDateTime tstDate;
+
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Order> orders = new HashSet<>();
 
@@ -31,10 +35,11 @@ public class Transaction {
     // Constructors
     public Transaction() {}
 
-    public Transaction(User user, Integer totalMoney, String note) {
+    public Transaction(User user, Integer totalMoney, String note, LocalDateTime tstDate) {
         this.user = user;
         this.totalMoney = totalMoney;
         this.note = note;
+        this.tstDate = tstDate;
         this.orders = new HashSet<>();
         this.inboxes = new HashSet<>();
     }
@@ -70,6 +75,14 @@ public class Transaction {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public LocalDateTime getTstDate() {
+        return tstDate;
+    }
+
+    public void setTstDate(LocalDateTime tstDate) {
+        this.tstDate = tstDate;
     }
 
     public Set<Order> getOrders() {

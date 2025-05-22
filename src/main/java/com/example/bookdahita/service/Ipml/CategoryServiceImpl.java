@@ -1,7 +1,7 @@
 package com.example.bookdahita.service.Ipml;
 
 import com.example.bookdahita.models.Category;
-import com.example.bookdahita.repositoty.CategoryRepository;
+import com.example.bookdahita.repository.CategoryRepository;
 import com.example.bookdahita.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

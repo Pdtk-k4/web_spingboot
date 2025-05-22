@@ -1,4 +1,4 @@
-package com.example.bookdahita.repositoty;
+package com.example.bookdahita.repository;
 
 import com.example.bookdahita.models.Category;
 import org.springframework.data.jpa.repository.JpaRepository;

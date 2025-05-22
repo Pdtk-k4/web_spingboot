@@ -1,7 +1,7 @@
 package com.example.bookdahita.service.Ipml;
 
 import com.example.bookdahita.models.Product;
-import com.example.bookdahita.repositoty.ProductRepository;
+import com.example.bookdahita.repository.ProductRepository;
 import com.example.bookdahita.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
 package com.example.bookdahita.service.Ipml;
 
 import com.example.bookdahita.models.Slide;
-import com.example.bookdahita.repositoty.SlideRepository;
+import com.example.bookdahita.repository.SlideRepository;
 import com.example.bookdahita.service.SlideService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

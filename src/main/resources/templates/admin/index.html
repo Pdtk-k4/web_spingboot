@@ -10,53 +10,140 @@
         <div th:replace="/admin/include/sidebar :: sidebar"></div>
         <div class="grid_10">
             <div class="box round first grid">
-                <h2>Doanh thu các tháng</h2>
-                <div style="margin-top: 15px; font-size: 16px;">
-                <span style="font-weight: 600;">Tổng Doanh thu: <span style="color: green;"> <?php echo number_format($result['total'], 0, '.', '.'); ?> VNĐ </span> </span>
+                <h2>Thống kê</h2>
+                <div class="filter-section">
+                    <label for="chartSelector">Chọn loại thống kê:</label>
+                    <select id="chartSelector">
+                        <option value="category">Số lượng sản phẩm theo danh mục</option>
+                        <option value="usersDay">Người dùng đăng ký theo ngày</option>
+                    </select>
+                    <label for="dateRange">Chọn khoảng thời gian:</label>
+                    <input type="date" id="dateRange" placeholder="Chọn khoảng thời gian"/>
+                </div>
+                <div style="margin-top: 15px; font-size: 16px;" id="totalRevenueSection">
+                    <span style="font-weight: 600;">Tổng doanh thu: <span id="totalRevenue" style="color: green;">0 VNĐ</span></span>
+                </div>
+                <canvas id="chartCanvas"></canvas>
             </div>
-        <canvas id="myChart"></canvas>
+        </div>
+
           </div>
         </div>
 
         <script th:src="@{https://cdn.jsdelivr.net/npm/chart.js}"></script>
-<script>
-  // Lấy dữ liệu từ PHP
-  fetch('')
-    .then(response => response.json()) // Chuyển JSON thành mảng JavaScript
-    .then(data => {
-      let ctx = document.getElementById('myChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-                   'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
-          datasets: [{
-            label: 'Doanh thu (VNĐ)',
-            data: data, // Dữ liệu lấy từ get_revenue.php
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: true },
-            title: {
-              display: true,
-              text: 'Doanh thu theo tháng'
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
+    <script>
+        let currentChart = null;
+
+        // Hàm định dạng số tiền
+        function formatNumber(number) {
+            return new Intl.NumberFormat('vi-VN', { style: 'decimal' }).format(number);
         }
-      });
-    })
-    .catch(error => console.error('Lỗi khi tải dữ liệu:', error));
-</script>
+
+        // Hàm cập nhật biểu đồ
+        function updateChart() {
+            const chartType = document.getElementById('chartSelector').value;
+            const dateRange = document.getElementById('dateRange').value.split(" to ");
+            const startDate = dateRange[0] ? new Date(dateRange[0]).toISOString() : null;
+            const endDate = dateRange[1] ? new Date(dateRange[1]).toISOString() : null;
+
+            // Ẩn/hiển thị tổng doanh thu
+            const totalRevenueSection = document.getElementById('totalRevenueSection');
+            totalRevenueSection.style.display = (chartType === 'revenueDay' || chartType === 'revenueMonth') ? 'flex' : 'none';
+
+            // Xóa biểu đồ cũ
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            let apiUrl, chartConfig;
+
+            switch (chartType) {
+
+                case 'category':
+                    apiUrl = '/api/statistics/products-by-category';
+                    chartConfig = {
+                        type: 'pie',
+                        dataFn: data => ({
+                            labels: data.map(item => item.categoryName),
+                            datasets: [{
+                                label: 'Số lượng sản phẩm',
+                                data: data.map(item => item.productCount),
+                                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CB3F', '#4BC0C0', '#FF6384']
+                            }]
+                        }),
+                        options: {
+                            plugins: {
+                                title: { display: true, text: 'Thống kê sản phẩm theo danh mục' }
+                            }
+                        }
+                    };
+                    break;
+
+                case 'usersDay':
+                    apiUrl = `/api/statistics/users/day?startDate=${startDate}&endDate=${endDate}`;
+                    chartConfig = {
+                        type: 'line',
+                        dataFn: data => ({
+                            labels: data.map(item => item.period),
+                            datasets: [{
+                                label: 'Người dùng đăng ký',
+                                data: data.map(item => item.count),
+                                backgroundColor: '#2196F3',
+                                borderColor: '#1976D2',
+                                fill: false
+                            }]
+                        }),
+                        options: {
+                            scales: {
+                                y: { beginAtZero: true, title: { display: true, text: 'Số lượng' } },
+                                x: { title: { display: true, text: 'Ngày' } }
+                            },
+                            plugins: {
+                                title: { display: true, text: 'Thống kê người dùng đăng ký theo ngày' }
+                            }
+                        }
+                    };
+                    break;
+            }
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const chartData = chartConfig.dataFn(data);
+                    currentChart = new Chart(document.getElementById('chartCanvas'), {
+                        type: chartConfig.type,
+                        data: chartData,
+                        options: chartConfig.options
+                    });
+
+                    // Cập nhật tổng doanh thu (nếu có)
+                    if (chartConfig.totalFn) {
+                        const total = chartConfig.totalFn(data);
+                        document.getElementById('totalRevenue').textContent = formatNumber(total) + ' VNĐ';
+                    } else {
+                        document.getElementById('totalRevenue').textContent = '0 VNĐ';
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi khi gọi API hoặc vẽ biểu đồ:", error);
+                });
+        }
+
+        // Cập nhật biểu đồ khi thay đổi lựa chọn
+        document.getElementById('chartSelector').addEventListener('change', updateChart);
+
+        // Cập nhật biểu đồ lần đầu
+        try {
+            updateChart();
+        } catch (error) {
+            console.error("Lỗi khi khởi tạo biểu đồ ban đầu:", error);
+        }
+    </script>
     </div>
     <div class="clear"></div>
     <div class="clear"></div>

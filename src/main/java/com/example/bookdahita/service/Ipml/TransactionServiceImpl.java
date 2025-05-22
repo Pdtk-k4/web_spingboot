@@ -1,11 +1,11 @@
 package com.example.bookdahita.service.Ipml;
 
 import com.example.bookdahita.models.*;
-import com.example.bookdahita.repositoty.InboxRepository;
-import com.example.bookdahita.repositoty.OrderRepository;
-import com.example.bookdahita.repositoty.ProductRepository;
-import com.example.bookdahita.repositoty.TransactionsRepository;
-import com.example.bookdahita.repositoty.DetailInboxRepository;
+import com.example.bookdahita.repository.InboxRepository;
+import com.example.bookdahita.repository.OrderRepository;
+import com.example.bookdahita.repository.ProductRepository;
+import com.example.bookdahita.repository.TransactionsRepository;
+import com.example.bookdahita.repository.DetailInboxRepository;
 import com.example.bookdahita.service.TransactionService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;

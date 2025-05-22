@@ -75,15 +75,4 @@ public class CategoryController {
         }
         return "redirect:/admin/catadd";
     }
-
-
-    @GetMapping("/inbox")
-    public String inbox() {
-        return "admin/inbox";
-    }
-
-    @GetMapping("/detail_inbox")
-    public String detail_inbox() {
-        return "admin/detail_inbox";
-    }
 }
