@@ -14,4 +14,6 @@ public interface TransactionService {
     Transaction getTransactionById(Long id);
     void placeOrder(Long transactionId, String name, String phone, String address, String paymentMethod);
     void deleteTransaction(Long transactionId);
+    // Thêm phương thức mới để cập nhật trạng thái giao dịch
+    void updateTransactionStatus(Long transactionId, String status);
 }

@@ -1877,3 +1877,128 @@ table.table-cart tr td.remove {
     width: 370px;
 }
 
+.row {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+.searchPage .heading-page {
+    position: relative;
+    text-align: center;
+    padding: 0 0 30px 0;
+}
+
+.searchPage .heading-page h1
+{
+    font-size: 30px;
+    margin: 0 0 10px;
+}
+.heading-page h1 {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.searchPage .subtxt {
+    opacity: .66;
+    margin-top: 15px;
+}
+
+p {
+    margin: 0 0 10px 0;
+    line-height: 21px;
+}
+
+.wrapbox-content-page {
+    padding-bottom: 30px;
+}
+.subtext-result {
+    margin-bottom: 30px;
+}
+.section-box-bg {
+    padding: 15px;
+    background: #fff;
+}
+
+.main-search .smart-search-wrapper {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 80;
+    background: #fff;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08);
+}
+
+.smart-search-wrapper {
+    width: 100%;
+    z-index: 100;
+}
+
+.smart-search-wrapper .item-ult {
+    padding: 10px 10px;
+    border-bottom: 1px dotted #dfe0e1;
+    display: flex;
+}
+
+.smart-search-wrapper .item-ult .thumbs {
+    width: 40px;
+    display: inline-block;
+    text-align: right;
+}
+
+.main-search a {
+    color: #4b4848;
+}
+
+.smart-search-wrapper .item-ult .title {
+    width: calc(100% - 40px);
+    padding-left: 10px;
+    float: left;
+    line-height: 20px;
+    position: relative;
+    margin-top: 0px !important;
+}
+
+.smart-search-wrapper .item-ult .title a {
+    font-size: 13px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: pre;
+    float: left;
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+.smart-search-wrapper .item-ult .title p {
+    line-height: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    float: left;
+    margin: 0;
+}
+
+.smart-search-wrapper .item-ult .title p del {
+    font-size: 11px;
+    font-weight: 300;
+    margin-left: 5px;
+    color: #797979;
+}
+.resultsMore {
+    width: 100%;
+    float: left;
+}
+
+.resultsMore a
+{
+    text-align: center;
+    display: block;
+    font-size: 14px;
+    padding: 10px 0;
+}
+
+

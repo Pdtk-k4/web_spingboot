@@ -10,13 +10,33 @@
         <div class="row search-container">
           <div class="col-10">
             <input required type="text" class="input-search" placeholder="Tìm kiếm sách truyện..." aria-label="Recipient's username" aria-describedby="button-addon2">
-            <div class="search-results" style="display: none;"></div>
+            <div class="smart-search-wrapper ajaxSearchResults" id="ajaxSearchResults-3" style="">
+              <div class="resultsContent" style="display: block;">
+                <div class="item-ult">
+                  <div class="thumbs">
+                    <a href="/products/dau-co-ra-di-van-se-cuoi" title="Dẫu Có Ra Đi Vẫn Sẽ Cười">
+                      <img alt="Dẫu Có Ra Đi Vẫn Sẽ Cười" src="//product.hstatic.net/200000845405/product/2023_01_04_11_07_37_1-390x510_5deebaa01b4c45dc8592e94226be9264_compact.jpg">
+                    </a>
+                  </div>
+                  <div class="title">
+                    <a class="/products/dau-co-ra-di-van-se-cuoi" title="Dẫu Có Ra Đi Vẫn Sẽ Cười" href="/products/dau-co-ra-di-van-se-cuoi">Dẫu Có Ra Đi Vẫn Sẽ Cười</a>
+                    <p class="f-initial">72,000₫
+                      <del>80,000₫</del>
+                    </p>
+                  </div>
+                </div>
+                <div class="resultsMore">
+                  <a th:href="@{/client/searchresult.html}">Xem thêm 1234 sản phẩm</a>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="col-2">
             <button class="button" type="button" id="button-addon2">Tìm kiếm</button>
           </div>
         </div>
       </div>
+
       <div class="col-lg-3">
         <div class="row">
           <div class="col d-flex justify-content-center align-items-center">

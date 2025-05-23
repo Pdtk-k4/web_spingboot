@@ -47,6 +47,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setTotalMoney(0);
         transaction.setNote("");
         transaction.setOrders(new HashSet<>());
+        transaction.setStatus("Pending"); // Đặt trạng thái ban đầu là Pending
         Transaction saved = transactionsRepository.save(transaction);
         logger.debug("Created new transaction: {}", saved.getId());
         return saved;
@@ -183,6 +184,7 @@ public class TransactionServiceImpl implements TransactionService {
             orderRepository.delete(order);
         });
         transaction.getOrders().clear();
+        transactionsRepository.save(transaction); // Lưu trước khi xóa
         transactionsRepository.delete(transaction);
         logger.debug("Deleted transaction: {}", transactionId);
     }
@@ -237,19 +239,74 @@ public class TransactionServiceImpl implements TransactionService {
                 logger.debug("Saved DetailInbox for product: {} and inbox: {}", order.getProduct().getId(), savedInbox.getId());
             }
 
-            transaction.getOrders().forEach(order -> {
-                logger.debug("Deleting order: {}", order.getId());
-                orderRepository.delete(order);
-            });
-            transaction.getOrders().clear();
-            transactionsRepository.save(transaction);
-            logger.debug("Cleared all orders for transaction: {}", transactionId);
+            // Chỉ xóa giao dịch nếu thanh toán COD
+            if ("cod".equalsIgnoreCase(paymentMethod)) {
+                transaction.getOrders().forEach(order -> {
+                    logger.debug("Deleting order: {}", order.getId());
+                    orderRepository.delete(order);
+                });
+                transaction.getOrders().clear();
+                transactionsRepository.save(transaction);
+                logger.debug("Cleared all orders for transaction: {}", transactionId);
 
-            transactionsRepository.delete(transaction);
-            logger.debug("Deleted transaction: {}", transactionId);
+                transactionsRepository.delete(transaction);
+                logger.debug("Deleted transaction: {}", transactionId);
+            } else if ("vnpay".equalsIgnoreCase(paymentMethod)) {
+                // Giữ giao dịch lại để xử lý callback từ VNPay
+                transaction.setStatus("PendingPayment");
+                transactionsRepository.save(transaction);
+                logger.debug("Updated transaction status to PendingPayment for VNPay: {}", transactionId);
+            }
         } catch (Exception e) {
             logger.error("Error processing order for transaction: {}", transactionId, e);
             throw new RuntimeException("Lỗi khi xử lý đơn hàng: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void updateTransactionStatus(Long transactionId, String status) {
+        logger.debug("Updating status to {} for transaction: {}", status, transactionId);
+        Transaction transaction = transactionsRepository.findById(transactionId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy giao dịch với ID: " + transactionId));
+        transaction.setStatus(status);
+        transactionsRepository.save(transaction);
+        logger.debug("Updated transaction status to: {}", status);
+
+        // Nếu giao dịch thành công (Paid), chuyển dữ liệu sang Inbox và xóa giao dịch
+        if ("Paid".equalsIgnoreCase(status)) {
+            // Tìm Inbox phù hợp
+            Inbox inbox = inboxRepository.findByUser(transaction.getUser())
+                    .stream()
+                    .filter(i -> i.getTransaction() == null)
+                    .findFirst()
+                    .orElse(null);
+
+            if (inbox == null) {
+                // Nếu không tìm thấy Inbox, tạo mới
+                logger.debug("No matching Inbox found for transaction: {}, creating new Inbox", transactionId);
+                inbox = new Inbox();
+                inbox.setUser(transaction.getUser());
+                inbox.setQuantity(transaction.getOrders().stream().mapToInt(Order::getQuantity).sum());
+                inbox.setPrice(transaction.getTotalMoney());
+                inbox.setCustomerName(""); // Cần lấy thông tin từ transaction hoặc form
+                inbox.setCustomerAddress("");
+                inbox.setCustomerPhone("");
+                inbox.setStatus(false);
+                inbox.setTransaction(null);
+                inboxRepository.save(inbox);
+            }
+
+            inbox.setTransaction(transaction);
+            inbox.setStatus(true); // Đánh dấu đơn hàng đã thanh toán
+            inboxRepository.save(inbox);
+            logger.debug("Updated Inbox status for transaction: {}", transactionId);
+
+            // Xóa giao dịch sau khi thanh toán thành công
+            deleteTransaction(transactionId);
+        } else if ("Failed".equalsIgnoreCase(status)) {
+            // Giữ giao dịch để người dùng thử lại
+            logger.warn("Transaction {} failed, keeping transaction for retry", transactionId);
+            // Có thể thêm logic thông báo người dùng, ví dụ: gửi email hoặc lưu thông báo
         }
     }
 }

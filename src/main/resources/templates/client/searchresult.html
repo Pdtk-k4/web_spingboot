@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="/client/include/head :: head"></head>
+<body>
+<section th:replace="/client/include/header :: header"></section>
+<span sec:authentication="name"></span>
+    <div class="searchPage py-5" id="layout-search">
+        <div class="container">
+            <div class="row pd-page">
+                <div class="col-12">
+                    <div class="heading-page">
+                        <h1>Tìm kiếm</h1>
+                        <p class="subtxt">
+                            Có <span>1234 sản phẩm</span> cho tìm kiếm
+                        </p>
+                        <hr class="lth-5">
+                    </div>
+                    <div class="wrapbox-content-page">
+                        <div class="content-page" id="search">
+                            <p class="subtext-result">Kết quả tìm kiếm cho <strong>"van"</strong>.</p>
+                            <div class="results content-product-list section-box-bg">
+                                <div class=" search-list-results row">
+<!--                                    product-->
+                                    <div class="col-md-3 col-sm-6 col-xs-6 col-6">
+                                        <div class="product-item">
+                                            <div class="product-img " style="border: none;">
+                                                <div class="product-sale" style="background: #f03737;"><span>%</span></div>
+                                                <a href="">
+                                                    <img src="" alt=" ">
+                                                </a>
+                                                <div class="button-add d-none d-md-flex">
+                                                    <button title="Thêm vào giỏ" class="action " onclick="add_to_cart('');" data-tooltip="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></button>
+                                                    <a href="" data-tooltip="Chi tiết"><i class="fa-regular fa-eye"></i></a>
+                                                </div>
+                                            </div>
+                                            <div class="product-detail">
+                                                <h3 class="pro-name"><a href="" title=""></a></h3>
+                                                <p class="pro-price highlight">
+                                                    <span class="current-price">đ</span>
+                                                    <del class="compare-price">đ</del>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+<!--                                    -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<section th:replace="/client/include/footer :: footer"></section>
+<div th:replace="/client/include/script :: script"></div>
+</body>
+</html>

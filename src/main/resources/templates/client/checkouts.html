@@ -129,7 +129,7 @@
                     </label>
                     <label class="payment-option">
                         <input type="radio" name="payment" value="vnpay">
-                        <img src="https://sandbox.vnpayment.vn/paymentv2/images/logo.png" alt="VNPay" style="width: 40px; height: auto;">
+                        <img th:src="@{/resources/images/frontend/vnpay.png}" alt="VNPay" style="width: 40px; height: auto;">
                         <span style="font-size: 14px;">Thanh toán qua VNPay</span>
                     </label>
                 </div>
@@ -196,28 +196,34 @@
             var totalPrice = parseInt($('.total-price').text().replace(/[^0-9]/g, '')) || 0;
 
             if (paymentMethod === 'vnpay') {
-                e.preventDefault(); // Ngăn form submit mặc định
+                e.preventDefault();
+                if (totalPrice <= 0) {
+                    alert('Tổng tiền phải lớn hơn 0');
+                    return;
+                }
                 $.ajax({
                     url: '/api/vnpay/create-payment',
                     type: 'POST',
                     data: {
                         amount: totalPrice,
                         orderId: transactionId,
-                        orderInfo: 'Thanh toan don hang ' + transactionId
+                        orderInfo: 'Payment for order ' + transactionId
                     },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
                     },
                     success: function(response) {
-                        // Chuyển hướng đến URL thanh toán VNPay
-                        window.location.href = response;
+                        if (response.status === 'OK' && response.data.paymentUrl) {
+                            window.location.href = response.data.paymentUrl;
+                        } else {
+                            alert('Lỗi khi tạo URL thanh toán: ' + response.message);
+                        }
                     },
                     error: function(xhr) {
-                        alert('Lỗi khi tạo URL thanh toán VNPay: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+                        alert('Lỗi khi tạo URL thanh toán: ' + xhr.responseText);
                     }
                 });
             }
-            // Nếu là COD, để form submit bình thường
         });
     });
 </script>

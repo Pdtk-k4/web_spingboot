@@ -29,6 +29,9 @@ public class Transaction {
     @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Inbox> inboxes = new HashSet<>();
 
+    @Column(name = "status", nullable = false, length = 50, columnDefinition = "varchar(50) default 'Pending'")
+    private String status;
+
     // Constructors
     public Transaction() {}
 
@@ -38,6 +41,7 @@ public class Transaction {
         this.note = note;
         this.orders = new HashSet<>();
         this.inboxes = new HashSet<>();
+        this.status = "Pending"; // Đặt trạng thái mặc định là Pending
     }
 
     // Getters and Setters
@@ -87,5 +91,13 @@ public class Transaction {
 
     public void setInboxes(Set<Inbox> inboxes) {
         this.inboxes = inboxes;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
