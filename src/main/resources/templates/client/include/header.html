@@ -10,8 +10,8 @@
         <div class="row search-container">
           <div class="col-10">
             <input required type="text" class="input-search" placeholder="Tìm kiếm sách truyện..." aria-label="Recipient's username" aria-describedby="button-addon2">
-            <div class="smart-search-wrapper ajaxSearchResults" id="ajaxSearchResults-3" style="">
-              <div class="resultsContent" style="display: block;">
+            <div class="smart-search-wrapper ajaxSearchResults" id="ajaxSearchResults-3">
+              <div class="resultsContent">
                 <div class="item-ult">
                   <div class="thumbs">
                     <a href="/products/dau-co-ra-di-van-se-cuoi" title="Dẫu Có Ra Đi Vẫn Sẽ Cười">
@@ -36,7 +36,6 @@
           </div>
         </div>
       </div>
-
       <div class="col-lg-3">
         <div class="row">
           <div class="col d-flex justify-content-center align-items-center">
@@ -91,7 +90,37 @@
     // Cập nhật badge định kỳ (mỗi 10 giây)
     setInterval(updateCartBadge, 10000);
 
-    // Thêm sự kiện cập nhật khi thêm/xóa sản phẩm (cần tích hợp với nút "Thêm vào giỏ")
-    // Ví dụ: $(document).on('cartUpdated', updateCartBadge);
+    // Xử lý hiển thị kết quả tìm kiếm
+    $('.input-search').on('input', function() {
+      var query = $(this).val();
+      if (query.length > 0) {
+        // Giả sử bạn có một API để lấy kết quả tìm kiếm
+        $.ajax({
+          url: '/client/search', // Thay bằng URL API thực tế
+          type: 'GET',
+          data: { query: query },
+          success: function(response) {
+            if (response.results.length > 0) {
+              $('#ajaxSearchResults-3').addClass('active');
+              // Cập nhật nội dung kết quả tìm kiếm (response.results)
+            } else {
+              $('#ajaxSearchResults-3').removeClass('active');
+            }
+          },
+          error: function() {
+            $('#ajaxSearchResults-3').removeClass('active');
+          }
+        });
+      } else {
+        $('#ajaxSearchResults-3').removeClass('active');
+      }
+    });
+
+    // Ẩn kết quả tìm kiếm khi click ra ngoài
+    $(document).on('click', function(e) {
+      if (!$(e.target).closest('.search-container').length) {
+        $('#ajaxSearchResults-3').removeClass('active');
+      }
+    });
   });
 </script>

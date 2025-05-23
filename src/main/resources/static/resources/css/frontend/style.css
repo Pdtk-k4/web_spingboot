@@ -2000,5 +2000,34 @@ p {
     font-size: 14px;
     padding: 10px 0;
 }
+.search-container {
+    position: relative;
+}
 
+.input-search {
+    position: relative;
+    z-index: 100; /* Đảm bảo input nằm trên kết quả tìm kiếm */
+}
+
+.smart-search-wrapper {
+    position: absolute;
+    top: 100%; /* Đặt ngay bên dưới input */
+    left: 0;
+    right: 0;
+    z-index: 80;
+    background: #fff;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+    display: none; /* Ẩn mặc định */
+}
+
+.smart-search-wrapper.active {
+    display: block; /* Hiển thị khi có kết quả */
+}
+
+.resultsContent {
+    padding: 10px;
+}
 
