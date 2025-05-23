@@ -12,22 +12,22 @@
             <input required type="text" class="input-search" placeholder="Tìm kiếm sách truyện..." aria-label="Recipient's username" aria-describedby="button-addon2">
             <div class="smart-search-wrapper ajaxSearchResults" id="ajaxSearchResults-3">
               <div class="resultsContent">
-                <div class="item-ult">
-                  <div class="thumbs">
-                    <a href="/products/dau-co-ra-di-van-se-cuoi" title="Dẫu Có Ra Đi Vẫn Sẽ Cười">
-                      <img alt="Dẫu Có Ra Đi Vẫn Sẽ Cười" src="//product.hstatic.net/200000845405/product/2023_01_04_11_07_37_1-390x510_5deebaa01b4c45dc8592e94226be9264_compact.jpg">
-                    </a>
-                  </div>
-                  <div class="title">
-                    <a class="/products/dau-co-ra-di-van-se-cuoi" title="Dẫu Có Ra Đi Vẫn Sẽ Cười" href="/products/dau-co-ra-di-van-se-cuoi">Dẫu Có Ra Đi Vẫn Sẽ Cười</a>
-                    <p class="f-initial">72,000₫
-                      <del>80,000₫</del>
-                    </p>
-                  </div>
-                </div>
-                <div class="resultsMore">
-                  <a th:href="@{/client/searchresult.html}">Xem thêm 1234 sản phẩm</a>
-                </div>
+<!--                <div class="item-ult">-->
+<!--                  <div class="thumbs">-->
+<!--                    <a href="/products/dau-co-ra-di-van-se-cuoi" title="Dẫu Có Ra Đi Vẫn Sẽ Cười">-->
+<!--                      <img alt="Dẫu Có Ra Đi Vẫn Sẽ Cười" src="//product.hstatic.net/200000845405/product/2023_01_04_11_07_37_1-390x510_5deebaa01b4c45dc8592e94226be9264_compact.jpg">-->
+<!--                    </a>-->
+<!--                  </div>-->
+<!--                  <div class="title">-->
+<!--                    <a class="/products/dau-co-ra-di-van-se-cuoi" title="Dẫu Có Ra Đi Vẫn Sẽ Cười" href="/products/dau-co-ra-di-van-se-cuoi">Dẫu Có Ra Đi Vẫn Sẽ Cười</a>-->
+<!--                    <p class="f-initial">72,000₫-->
+<!--                      <del>80,000₫</del>-->
+<!--                    </p>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--                <div class="resultsMore">-->
+<!--                  <a th:href="@{/client/searchresult}">Xem thêm 1234 sản phẩm</a>-->
+<!--                </div>-->
               </div>
             </div>
           </div>
@@ -65,62 +65,3 @@
     </div>
   </div>
 </section>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-  $(document).ready(function() {
-    function updateCartBadge() {
-      $.ajax({
-        url: '/client/cart/total-unique-quantity',
-        type: 'GET',
-        headers: {
-          'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
-        },
-        success: function(response) {
-          $('#cartBadge').text(response.totalUniqueQuantity || 0);
-        },
-        error: function(xhr) {
-          $('#cartBadge').text('0');
-        }
-      });
-    }
-
-    // Cập nhật badge khi tải trang
-    updateCartBadge();
-
-    // Cập nhật badge định kỳ (mỗi 10 giây)
-    setInterval(updateCartBadge, 10000);
-
-    // Xử lý hiển thị kết quả tìm kiếm
-    $('.input-search').on('input', function() {
-      var query = $(this).val();
-      if (query.length > 0) {
-        // Giả sử bạn có một API để lấy kết quả tìm kiếm
-        $.ajax({
-          url: '/client/search', // Thay bằng URL API thực tế
-          type: 'GET',
-          data: { query: query },
-          success: function(response) {
-            if (response.results.length > 0) {
-              $('#ajaxSearchResults-3').addClass('active');
-              // Cập nhật nội dung kết quả tìm kiếm (response.results)
-            } else {
-              $('#ajaxSearchResults-3').removeClass('active');
-            }
-          },
-          error: function() {
-            $('#ajaxSearchResults-3').removeClass('active');
-          }
-        });
-      } else {
-        $('#ajaxSearchResults-3').removeClass('active');
-      }
-    });
-
-    // Ẩn kết quả tìm kiếm khi click ra ngoài
-    $(document).on('click', function(e) {
-      if (!$(e.target).closest('.search-container').length) {
-        $('#ajaxSearchResults-3').removeClass('active');
-      }
-    });
-  });
-</script>

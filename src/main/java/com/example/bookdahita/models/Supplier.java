@@ -1,5 +1,6 @@
 package com.example.bookdahita.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.Set;
@@ -17,6 +18,7 @@ public class Supplier {
     private String supname;
 
     @OneToMany(mappedBy = "supplier")
+    @JsonManagedReference(value = "supplier-product")
     private Set<Product> products;
 
     public Supplier() {

@@ -2006,28 +2006,56 @@ p {
 
 .input-search {
     position: relative;
-    z-index: 100; /* Đảm bảo input nằm trên kết quả tìm kiếm */
+    z-index: 100;
 }
 
 .smart-search-wrapper {
+    display: none;
     position: absolute;
-    top: 100%; /* Đặt ngay bên dưới input */
-    left: 0;
-    right: 0;
-    z-index: 80;
     background: #fff;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    max-height: 400px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 1000;
+    width: 100%;
+    max-height: 300px;
     overflow-y: auto;
-    display: none; /* Ẩn mặc định */
+    top: 100%;
+    left: 0;
 }
-
 .smart-search-wrapper.active {
-    display: block; /* Hiển thị khi có kết quả */
+    display: block;
 }
-
-.resultsContent {
+.item-ult {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+.thumbs img {
+    width: 50px;
+    height: 65px;
+    object-fit: cover;
+    margin-right: 10px;
+}
+.title a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+}
+.title p {
+    margin: 0;
+    font-size: 14px;
+}
+.title .category {
+    color: #666;
+    font-size: 12px;
+}
+.resultsMore {
+    text-align: center;
     padding: 10px;
 }
+.resultsMore a {
+    color: #ff7b00;
+    text-decoration: none;
+}
+
 

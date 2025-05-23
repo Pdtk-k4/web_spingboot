@@ -1,5 +1,6 @@
 package com.example.bookdahita.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.util.Set;
@@ -36,14 +37,17 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "idcat", referencedColumnName = "id")
+    @JsonBackReference(value = "category-product")
     private Category category;
 
     @ManyToOne
     @JoinColumn(name = "idsup", referencedColumnName = "id")
+    @JsonBackReference(value = "supplier-product")
     private Supplier supplier;
 
     @ManyToOne
     @JoinColumn(name = "idau", referencedColumnName = "id")
+    @JsonBackReference(value = "author-product")
     private Author author;
 
     @OneToMany(mappedBy = "product")

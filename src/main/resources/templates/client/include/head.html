@@ -1,6 +1,9 @@
 <head th:fragment="head">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"/>
 <title>Dahita - Sách Truyện Online</title>
 <link rel="icon" th:href="@{/resources/images/frontend/ic_logo.png}">
 <link rel="stylesheet" th:href="@{/resources/css/frontend/bootstrap.min.css}">
