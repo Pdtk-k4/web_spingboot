@@ -83,6 +83,11 @@
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-translate</artifactId>
+            <version>2.3.1</version> <!-- Kiểm tra phiên bản mới nhất tại https://mvnrepository.com/artifact/com.google.cloud/google-cloud-translate -->
+        </dependency>
     </dependencies>
 
     <build>
