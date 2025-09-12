@@ -1,0 +1,109 @@
+<section id="footer_main" th:fragment="footer">
+<!--	<div style="background: linear-gradient(135deg, #71b7e6, #9b59b6); padding: 10px;"></div>-->
+	<div style="background: #7F7F7F; padding: 10px;"></div>
+
+	<div class="container">
+		<div class="row py-4">
+			<div class="col-md-12 col-sm-12 col-xs-12 footer-right">
+				<div class="fi-about-block grid__item footer-new newfooter">
+					<a th:href="@{/DahitaBook}">
+						<img th:src="@{/resources/images/frontend/logo2.png}" alt="Dahita Books" class="img-fluid">
+					</a>
+				</div>
+				<div class="col-md-2 col-sm-6 col-xs-12 newfooter">
+					<div class="fi-title" th:text="#{footer.news}">News</div>
+					<div class="fi-content">
+						<ul class="grid__item one-whole">
+							<li>
+								<a class="fi" href="#" th:text="#{footer.gioithieu}">Introduction</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.diemsach}">Book Review</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.tuyendung}">Recruitment</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.event}">Event</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.tinkhuyenmai}">Promotional News</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="col-md-3 col-sm-6 col-xs-12 newfooter">
+					<div class="fi-title" th:text="#{footer.support.title}">Customer Support</div>
+					<div class="fi-content">
+						<ul class="grid__item one-whole">
+							<li>
+								<a class="fi" href="#" th:text="#{footer.support.terms}">Terms of Use</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.support.guide}">Purchase Guide</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.support.payment}">Payment Methods</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.support.shipping}">Shipping Methods</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.support.return}">Return Policy</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.support.privacy}">Privacy Policy</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="col-md-3 col-sm-6 col-xs-12 newfooter">
+					<div class="fi-title" th:text="#{footer.info.title}">Information</div>
+					<div class="fi-content">
+						<ul class="grid__item one-whole">
+							<li>
+								<a class="fi" th:href="@{/client/login}" th:text="#{footer.info.login}">Login</a>
+							</li>
+							<li>
+								<a class="fi" th:href="@{/client/register}" th:text="#{footer.info.register}">Register</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.info.order}">Track Order</a>
+							</li>
+							<li>
+								<a class="fi" href="#" th:text="#{footer.info.contact}">Contact</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="col-md-4 col-sm-6 col-xs-12 footer-new newfooter">
+					<div class="fi-title" th:text="#{footer.connect.title}">Kết nối với Dahita Books</div>
+					<div class="fi-content icon-content">
+						<ul class="row wrapper">
+							<li class="col-4 shopee">
+								<div id="dynamic-image" class="sp">
+									<a href="#">
+										<span class="tooltip">Shopee</span>
+										<img class="ic" th:src="@{/resources/images/frontend/logo_shopee_dark.png}" alt="">
+									</a>
+								</div>
+							</li>
+							<li class="col-4 icon facebook">
+								<a style="color: #000;" href="#">
+									<span class="tooltip">Facebook</span>
+									<span class="ic"><i class="fab fa-facebook-f"></i></span>
+								</a>
+							</li>
+							<li class="col-4 icon tiktok">
+								<a style="color: #000;" href="#">
+									<span class="tooltip">Tiktok</span>
+									<span class="ic"><i class="fab fa-tiktok"></i></span>
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>

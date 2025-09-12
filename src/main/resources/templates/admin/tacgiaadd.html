@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Thêm tác giả</h2>
+            <div class="block copyblock mb-25">
+                <form th:action="@{/admin/tacgiaadd}" th:object="${author}" method="post">
+                    <table  class="form">
+                        <tr>
+                            <td>
+                                <input th:field="*{auname}" type="text" placeholder="Thêm tác giả..." class="medium" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="submit" name="submit" Value="Thêm" />
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+            <h2 class="">Danh sách tác giả</h2>
+
+			<div class="block">       
+				<table class="data display datatable" id="example">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên tác giả</th>
+                            <th>Tùy chỉnh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr class="odd gradeX" th:each="author : ${list}">
+                            <td th:text="${author.id}"></td>
+                            <td th:text="${author.auname}"></td>
+                            <td><a th:href="@{/admin/tacgiaedit/{id}(id=${author.id})}">Sửa tên</a> || <a th:href="@{/admin/tacgiadel/{id}(id=${author.id})}" onclick="return confirm('Bạn có chắc muốn xóa?')" >Xóa</a></td>
+                        </tr>
+                    </tbody>
+			    </table>
+			</div>
+        </div>
+    </div>
+    <script type="text/javascript">
+		$(document).ready(function () {
+			setupLeftMenu();
+
+			$('.datatable').dataTable();
+			setSidebarHeight();
+		});
+	</script>
+    <div class="clear"></div>
+    </div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/footer :: footer"></div>
+    </body>
+    </html>

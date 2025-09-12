@@ -1,0 +1,156 @@
+<div th:fragment="script">
+  <script th:src="@{/resources/js/frontend/dynamic-image-gg-sign-in.js}"></script>
+  <script th:src="@{/resources/js/frontend/dynamic-image-gg-sign-up.js}"></script>
+  <script th:src="@{/resources/js/frontend/dynamic-image.js}"></script>
+  <script th:src="@{/resources/js/frontend/button-search.js}"></script>
+  <script th:src="@{/resources/js/frontend/search.js}"></script>
+  <script th:src="@{/resources/js/frontend/scroll.js}"></script>
+  <script th:src="@{/resources/js/frontend/bootstrap.bundle.min.js}"></script>
+  <script th:inline="javascript">
+    function addToCart(productId) {
+      const quantity = 1; // Mặc định quantity = 1
+      console.log('Adding to cart: productId=' + productId + ', quantity=' + quantity); // Debug
+      $.ajax({
+        url: '/client/cart/add/' + productId,
+        type: 'POST',
+        data: { quantity: quantity },
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+        },
+        dataType: 'json',
+        success: function(response) {
+          console.log('Add to cart response:', response); // Debug
+          if (response.status === 'success') {
+            // Cập nhật badge từ totalUniqueQuantity
+            if (response.totalUniqueQuantity !== undefined) {
+              $('#cartBadge').text(response.totalUniqueQuantity || 0);
+              console.log('Badge updated:', response.totalUniqueQuantity); // Debug
+            } else if (typeof updateCartBadge === 'function') {
+              updateCartBadge();
+              console.log('updateCartBadge called'); // Debug
+            } else {
+              console.error('updateCartBadge is not defined'); // Debug
+              // Fallback: Gọi trực tiếp endpoint
+              $.ajax({
+                url: '/client/cart/total-unique-quantity',
+                type: 'GET',
+                headers: {
+                  'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                },
+                success: function(badgeResponse) {
+                  $('#cartBadge').text(badgeResponse.totalUniqueQuantity || 0);
+                  console.log('Fallback badge update:', badgeResponse); // Debug
+                },
+                error: function(xhr) {
+                  console.error('Fallback badge update failed:', xhr); // Debug
+                  $('#cartBadge').text('0');
+                }
+              });
+            }
+            alert(response.message);
+          } else if (response.status === 'error' && response.message.includes('đăng nhập')) {
+            console.log('Redirecting to login'); // Debug
+            sessionStorage.setItem('pendingProductId', productId);
+            sessionStorage.setItem('pendingQuantity', quantity);
+            window.location.href = '/client/login';
+          } else {
+            console.error('Add to cart failed:', response.message); // Debug
+            alert(response.message);
+          }
+        },
+        error: function(xhr) {
+          console.error('Add to cart error:', xhr); // Debug
+          if (xhr.status === 401) {
+            sessionStorage.setItem('pendingProductId', productId);
+            sessionStorage.setItem('pendingQuantity', quantity);
+            window.location.href = '/client/login';
+          } else {
+            alert('Lỗi khi thêm sản phẩm: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+          }
+        }
+      });
+    }
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const container = document.getElementById('container-account');
+      const overlayBtn = document.getElementById('overlayBtn');
+
+      // Lấy giá trị của tham số "tab" trên URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+
+      // Nếu tab là "register", kích hoạt giao diện đăng ký
+      if (tab === 'register' && container) {
+        container.classList.add('right-panel-active');
+      }
+
+      // Xử lý sự kiện khi nhấn vào nút chuyển đổi form
+      if (overlayBtn) {
+        overlayBtn.addEventListener('click', () => {
+          container.classList.toggle('right-panel-active');
+          overlayBtn.classList.remove('btnScaled');
+          window.requestAnimationFrame(() => {
+            overlayBtn.classList.add('btnScaled');
+          });
+        });
+      }
+    });
+
+  </script>
+  <script>
+    const nextIcon ='<i class="fa-solid fa-angle-right"></i>'
+    const prevIcon ='<i class="fa-solid fa-angle-left"></i>'
+    $(document).ready(function() {
+      $('.owl-carousel').owlCarousel({
+        loop: true,
+        margin: 10,
+        responsiveClass: true,
+        navText: [
+          prevIcon,
+          nextIcon
+        ],
+        dots: false,
+        responsive: {
+          0: {
+            items: 1,
+            nav: true
+          },
+          600: {
+            items: 3,
+            nav: false
+          },
+          1000: {
+            items: 4,
+            nav: true,
+            loop: false,
+            margin: 20
+          }
+        }
+      })
+    })
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const quantityInput = document.getElementById("quantity");
+      const increaseBtn = document.querySelector(".increase");
+      const decreaseBtn = document.querySelector(".decrease");
+
+      increaseBtn.addEventListener("click", function() {
+        let currentValue = parseInt(quantityInput.value);
+        quantityInput.value = currentValue + 1;
+      });
+
+      decreaseBtn.addEventListener("click", function() {
+        let currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+          quantityInput.value = currentValue - 1;
+        }
+      });
+    });
+  </script>
+
+
+
+
+</div>

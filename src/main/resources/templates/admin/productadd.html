@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Thêm sản phẩm</h2>
+            <span class="back"><a th:href="@{/admin/productlist}"><i class="fa-solid fa-arrow-left"></i></a></span>
+            <div class="block">
+                <form th:action="@{/admin/productadd}" th:object="${product}" method="post" enctype="multipart/form-data" id="productForm">
+                    <div th:if="${success}" class="success-message" id="successMessage">
+                        <span>Thêm thành công</span>
+                    </div>
+                    <div th:if="${error != null}" class="error" th:text="${error}"></div>
+                    <table class="form">
+                        <tr>
+                            <td><label>Tên sản phẩm</label></td>
+                            <td>
+                                <input type="text" th:field="*{proname}" placeholder="Nhập tên sản phẩm..." class="medium" required id="proname"/>
+                                <span th:errors="*{proname}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Tác giả</label></td>
+                            <td>
+                                <select id="authorSelect" th:field="*{author.id}" required>
+                                    <option value="">Chọn tác giả</option>
+                                    <option th:each="author : ${listAuthor}" th:value="${author.id}" th:text="${author.auname}"></option>
+                                </select>
+                                <span th:errors="*{author.id}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Danh mục</label></td>
+                            <td>
+                                <select th:field="*{category.id}" required id="categorySelect">
+                                    <option value="">Chọn danh mục</option>
+                                    <option th:each="category : ${listCategory}" th:value="${category.id}" th:text="${category.catname}"></option>
+                                </select>
+                                <span th:errors="*{category.id}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Nhà cung cấp</label></td>
+                            <td>
+                                <select th:field="*{supplier.id}" required id="supplierSelect">
+                                    <option value="">Chọn nhà cung cấp</option>
+                                    <option th:each="supplier : ${listSupplier}" th:value="${supplier.id}" th:text="${supplier.supname}"></option>
+                                </select>
+                                <span th:errors="*{supplier.id}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="vertical-align: top; padding-top: 9px;"><label>Nội dung</label></td>
+                            <td>
+                                <textarea th:field="*{procontent}" class="tinymce" id="procontent"></textarea>
+                                <span th:errors="*{procontent}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Giá sản phẩm</label></td>
+                            <td>
+                                <input th:field="*{proprice}" type="number" placeholder="0" class="width" required min="0" id="proprice"/>
+                                <span th:errors="*{proprice}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Loại sản phẩm</label></td>
+                            <td>
+                                <input type="checkbox" th:field="*{pronewbook}" id="pronewbook">
+                                <label style="margin-right: 20px;">Sách mới</label>
+                                <input type="checkbox" th:field="*{prostatus}" id="prostatus">
+                                <label style="margin-right: 20px;">Nổi bật</label>
+                                <label style="margin-right: 5px;">Sale</label>
+                                <input type="number" th:field="*{prosale}" placeholder="0" class="width" min="0" value="0" id="prosale"/>
+                                <span th:errors="*{prosale}" class="error"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Ảnh bìa</label></td>
+                            <td>
+                                <img id="previewCover" src="" alt="Ảnh bìa" style="max-width: 200px; display: none;">
+                                <input id="coverInput" name="fileImage" type="file" required accept="image/*">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label>Ảnh chi tiết</label></td>
+                            <td>
+                                <div id="previewGallery" style="display: flex; gap: 10px;"></div>
+                                <input id="galleryInput" name="proGallery" type="file" multiple accept="image/*">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>
+                                <input type="submit" name="submit" value="Thêm"/>
+                                <button type="button" id="clearForm">Xóa dữ liệu</button>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Load jQuery -->
+<!--    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
+    <!-- Load TinyMCE -->
+    <script th:src="@{/resources/js/admin/tiny-mce/jquery.tinymce.js}" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            setupTinyMCE();
+            setDatePicker('date-picker');
+            $('input[type="checkbox"]').fancybutton();
+            $('input[type="radio"]').fancybutton();
+        });
+    </script>
+    <script>
+        // Lưu và khôi phục dữ liệu form
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("productForm");
+            const fields = [
+                "proname", "authorSelect", "categorySelect", "supplierSelect",
+                "procontent", "proprice", "pronewbook", "prostatus", "pros \;procontent", "proprice", "pronewbook", "prostatus", "prosale"
+            ];
+
+            // Khôi phục dữ liệu từ LocalStorage
+            const savedData = JSON.parse(localStorage.getItem("productFormData")) || {};
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element) {
+                    if (element.type === "checkbox") {
+                        element.checked = savedData[field] === true;
+                    } else {
+                        element.value = savedData[field] || "";
+                    }
+                }
+            });
+
+            // Khôi phục TinyMCE
+            if (savedData.procontent && typeof tinymce !== "undefined") {
+                tinymce.get("procontent").setContent(savedData.procontent);
+            }
+
+            // Lưu dữ liệu khi thay đổi
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element) {
+                    element.addEventListener("input", saveFormData);
+                    element.addEventListener("change", saveFormData);
+                }
+            });
+
+            // Lưu nội dung TinyMCE
+            if (typeof tinymce !== "undefined") {
+                tinymce.get("procontent").on("change", saveFormData);
+            }
+
+            // Xử lý preview ảnh bìa
+            document.getElementById("coverInput").addEventListener("change", function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewCover = document.getElementById("previewCover");
+                        previewCover.src = e.target.result;
+                        previewCover.style.display = "block";
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Xử lý preview ảnh chi tiết
+            document.getElementById("galleryInput").addEventListener("change", function(event) {
+                const files = event.target.files;
+                const previewGallery = document.getElementById("previewGallery");
+                previewGallery.innerHTML = "";
+                if (files.length > 4) {
+                    alert("Bạn chỉ có thể chọn tối đa 4 ảnh!");
+                    event.target.value = "";
+                    return;
+                }
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement("img");
+                        img.src = e.target.result;
+                        img.style.maxWidth = "100px";
+                        img.style.marginRight = "5px";
+                        previewGallery.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Xóa dữ liệu khi submit thành công
+            form.addEventListener("submit", function(event) {
+                // Xóa LocalStorage ngay sau submit
+                localStorage.removeItem("productFormData");
+            });
+
+            // Xóa dữ liệu khi nhấn nút "Xóa dữ liệu"
+            document.getElementById("clearForm").addEventListener("click", function() {
+                localStorage.removeItem("productFormData");
+                form.reset();
+                if (typeof tinymce !== "undefined") {
+                    tinymce.get("procontent").setContent("");
+                }
+                document.getElementById("previewCover").style.display = "none";
+                document.getElementById("previewCover").src = "";
+                document.getElementById("previewGallery").innerHTML = "";
+            });
+
+            // Ẩn thông báo thành công sau 3 giây
+            const successMessage = document.getElementById("successMessage");
+            if (successMessage) {
+                setTimeout(() => {
+                    successMessage.style.display = "none";
+                }, 3000);
+            }
+
+            function saveFormData() {
+                const data = {};
+                fields.forEach(field => {
+                    const element = document.getElementById(field);
+                    if (element) {
+                        data[field] = element.type === "checkbox" ? element.checked : element.value;
+                    }
+                });
+                // Lưu nội dung TinyMCE
+                if (typeof tinymce !== "undefined") {
+                    data.procontent = tinymce.get("procontent").getContent();
+                }
+                localStorage.setItem("productFormData", JSON.stringify(data));
+            }
+        });
+    </script>
+    <style>
+        .success-message {
+            background-color: #dff0d8;
+            color: #3c763d;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #d6e9c6;
+            border-radius: 4px;
+        }
+    </style>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+	<div th:replace="/admin/include/header :: header"></div>
+	<div class="clear"></div>
+	<div th:replace="/admin/include/header :: navbar"></div>
+	<div class="clear"></div>
+	<div th:replace="/admin/include/sidebar :: sidebar"></div>
+	<div class="grid_10">
+		<div class="box round first grid">
+			<h2>Quản lý slide</h2>
+			<a th:href="@{/admin/slideradd}"><input style="margin-top: 10px;" class="form" type="submit" name="submit" value="Thêm mới" /></a>
+			<div class="block">
+
+				<table class="data display datatable" id="example">
+					<thead>
+					<tr>
+						<th>STT</th>
+						<th>ID</th>
+						<th>Tên</th>
+						<th>Ảnh</th>
+						<th>Link</th>
+						<th>Target</th>
+						<th>Nổi bật</th>
+						<th>Tùy chỉnh</th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr th:each="slide, iterStat : ${slides}" class="odd gradeX">
+						<td th:text="${iterStat.count}"></td>
+						<td th:text="${slide.id}"></td>
+						<td th:text="${slide.sltitle}"></td>
+						<td>
+							<img th:src="@{/resources/uploads/{image}(image=${slide.slimage})}" style="max-width: 170px;" alt="Slide Image"/>
+						</td>
+						<td th:text="${slide.sllink}"></td>
+						<td th:text="${slide.sltarget}"></td>
+						<td th:text="${slide.slactive} ? 'Hiển thị' : 'Ẩn'"></td>
+						<td>
+							<a th:href="@{/admin/slideredit/{id}(id=${slide.id})}">Sửa</a> ||
+							<a th:href="@{/admin/sliderdelete/{id}(id=${slide.id})}" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</a>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		$(document).ready(function () {
+			setupLeftMenu();
+			$('.datatable').dataTable();
+			setSidebarHeight();
+		});
+	</script>
+	<div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

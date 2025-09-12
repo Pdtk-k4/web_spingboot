@@ -1,0 +1,50 @@
+<div class="grid_2" th:fragment="sidebar">
+    <div class="box sidemenu">
+        <div class="block" id="section-menu">
+            <ul class="section menu">
+                <!-- <li><a class="menuitem">Site Option</a>
+                     <ul class="submenu">
+                         <li><a href="titleslogan">Title & Slogan</a></li>
+                         <li><a href="social">Social Media</a></li>
+                         <li><a href="copyright">Copyright</a></li>
+
+                     </ul>
+                 </li> -->
+
+                <!-- <li><a class="menuitem">Update Pages</a>
+                   <ul class="submenu">
+                       <li><a>About Us</a></li>
+                       <li><a>Contact Us</a></li>
+                   </ul>
+               </li> -->
+                <li><a class="menuitem">QL Sản phẩm</a>
+                    <ul class="submenu">
+                        <!-- <li><a href="productadd">Thêm sản phẩm</a> </li> -->
+                        <li><a th:href="@{/admin/productlist}">Danh sách sản phẩm</a> </li>
+                        <li><a th:href="@{/admin/proSale}">Danh sách giảm giá</a> </li>
+                        <li><a th:href="@{/admin/proNewBook}">Sản phẩm mới</a> </li>
+                    </ul>
+                </li>
+                <li><a class="menuitem">QL Danh mục</a>
+                    <ul class="submenu">
+                        <li><a th:href="@{/admin/catadd}">Danh mục</a> </li>
+<!--                        <li><a th:href="@{/admin/childcateadd}">Danh mục con</a> </li>-->
+                        <li><a th:href="@{/admin/tacgiaadd}">Tác giả</a> </li>
+                        <li><a th:href="@{/admin/nhacungcapadd}">Nhà cung cấp</a> </li>
+                    </ul>
+                </li>
+                <li><a class="menuitem">Quản lý Slide</a>
+                    <ul class="submenu">
+                        <li><a th:href="@{/admin/sliderlist}">Danh sách slide</a> </li>
+                    </ul>
+                </li>
+                <!-- <li><a class="menuitem">Product Option</a>
+                    <ul class="submenu">
+                        <li><a href="addproduct.php">Add Product</a> </li>
+                        <li><a href="productlist">Product List</a> </li>
+                    </ul>
+                </li> -->
+            </ul>
+        </div>
+    </div>
+</div>

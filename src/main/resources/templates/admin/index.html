@@ -1,0 +1,189 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Thống kê</h2>
+            <div class="filter-section">
+                <label for="chartSelector">Chọn loại thống kê:</label>
+                <select id="chartSelector">
+                    <option value="revenue-by-month">Doanh thu theo tháng</option>
+                    <option value="category">Số lượng sản phẩm theo danh mục</option>
+                    <option value="usersDay">Người dùng đăng ký theo ngày</option>
+                </select>
+                <label for="yearSelector">Chọn năm:</label>
+                <input type="number" id="yearSelector" min="2000" max="2099" value="2025" placeholder="Chọn năm"/>
+            </div>
+            <div style="margin-top: 15px; font-size: 16px;" id="totalRevenueSection">
+                <span style="font-weight: 600;">Tổng doanh thu: <span id="totalRevenue" style="color: green;">0 VNĐ</span></span>
+            </div>
+            <div style="position: relative; width: 100%; height: 400px;">
+                <canvas id="chartCanvas"></canvas>
+            </div>
+        </div>
+
+
+    </div>
+    <script th:src="@{https://cdn.jsdelivr.net/npm/chart.js}"></script>
+    <script>
+        let currentChart = null;
+
+        // Hàm định dạng số tiền
+        function formatNumber(number) {
+            return new Intl.NumberFormat('vi-VN', { style: 'decimal' }).format(number);
+        }
+
+        // Hàm cập nhật biểu đồ
+        function updateChart() {
+            const chartType = document.getElementById('chartSelector').value;
+            const year = document.getElementById('yearSelector').value;
+
+            // Ẩn/hiển thị tổng doanh thu
+            const totalRevenueSection = document.getElementById('totalRevenueSection');
+            totalRevenueSection.style.display = (chartType === 'revenue-by-month') ? 'flex' : 'none';
+
+            // Xóa biểu đồ cũ
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            let apiUrl, chartConfig;
+
+            switch (chartType) {
+                case 'revenue-by-month':
+                    apiUrl = `/api/statistics/revenue-by-month?year=${year}`;
+                    chartConfig = {
+                        type: 'bar',
+                        dataFn: data => ({
+                            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                                'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                            datasets: [{
+                                label: 'Doanh thu (VNĐ)',
+                                data: data.monthlyRevenue,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        }),
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true, title: { display: true, text: 'Doanh thu (VNĐ)' } },
+                                x: { title: { display: true, text: 'Tháng' } }
+                            },
+                            plugins: {
+                                title: { display: true, text: `Doanh thu theo tháng (${year})` }
+                            }
+                        },
+                        totalFn: data => data.monthlyRevenue.reduce((sum, revenue) => sum + revenue, 0)
+                    };
+                    break;
+
+                case 'category':
+                    apiUrl = '/api/statistics/products-by-category';
+                    chartConfig = {
+                        type: 'pie',
+                        dataFn: data => ({
+                            labels: data.map(item => item.categoryName),
+                            datasets: [{
+                                label: 'Số lượng sản phẩm',
+                                data: data.map(item => item.productCount),
+                                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CB3F', '#4BC0C0', '#FF6384']
+                            }]
+                        }),
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: { display: true, text: 'Thống kê sản phẩm theo danh mục' }
+                            }
+                        }
+                    };
+                    break;
+
+                case 'usersDay':
+                    const startDate = year ? new Date(year, 0, 1).toISOString() : null;
+                    const endDate = year ? new Date(year, 11, 31).toISOString() : null;
+                    apiUrl = `/api/statistics/users/day?startDate=${startDate}&endDate=${endDate}`;
+                    chartConfig = {
+                        type: 'line',
+                        dataFn: data => ({
+                            labels: data.map(item => item.period),
+                            datasets: [{
+                                label: 'Người dùng đăng ký',
+                                data: data.map(item => item.count),
+                                backgroundColor: '#2196F3',
+                                borderColor: '#1976D2',
+                                fill: false
+                            }]
+                        }),
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true, title: { display: true, text: 'Số lượng' } },
+                                x: { title: { display: true, text: 'Ngày' } }
+                            },
+                            plugins: {
+                                title: { display: true, text: 'Thống kê người dùng đăng ký theo ngày' }
+                            }
+                        }
+                    };
+                    break;
+            }
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const chartData = chartConfig.dataFn(data);
+                    currentChart = new Chart(document.getElementById('chartCanvas'), {
+                        type: chartConfig.type,
+                        data: chartData,
+                        options: chartConfig.options
+                    });
+
+                    // Cập nhật tổng doanh thu (nếu có)
+                    if (chartConfig.totalFn) {
+                        const total = chartConfig.totalFn(data);
+                        document.getElementById('totalRevenue').textContent = formatNumber(total) + ' VNĐ';
+                    } else {
+                        document.getElementById('totalRevenue').textContent = '0 VNĐ';
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi khi gọi API hoặc vẽ biểu đồ:", error);
+                });
+        }
+
+        // Cập nhật biểu đồ khi thay đổi lựa chọn hoặc năm
+        document.getElementById('chartSelector').addEventListener('change', updateChart);
+        document.getElementById('yearSelector').addEventListener('change', updateChart);
+
+        // Cập nhật biểu đồ lần đầu
+        try {
+            updateChart();
+        } catch (error) {
+            console.error("Lỗi khi khởi tạo biểu đồ ban đầu:", error);
+        }
+    </script>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+
+
+</body>
+</html>

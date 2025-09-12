@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head th:replace="/client/include/head :: head"></head>
+<body>
+<section th:replace="/client/include/header :: header"></section>
+
+    <section class="content">
+        <div class="container">
+            <div class="form-account mb-30 mt-30">
+                <div class="container-account" id="container-account" >
+                    <div class="form-container sign-up-container">
+                        <form th:action="@{/client/register}" th:object="${user}" method="post">
+                            <h1 th:text="#{auth.register.title}">Đăng Ký</h1>
+                            <div class="social-container">
+                                <a href="#" style="font-size: 18px;" class="social facebook"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" id="dynamic-image-gg-sign-up" class="social"><img th:src="@{/resources/images/frontend/ic_google_dark.png}" alt=""></a>
+                            </div>
+                            <span th:text="#{auth.register.email}">hoặc sử dụng email của bạn để đăng ký</span>
+                            <div class="infield">
+                                <input type="text" id="fullName" th:field="*{fullName}" required th:placeholder="#{auth.register.fullname}">
+                            </div>
+                            <div class="infield">
+                                <input type="email" id="email" th:field="*{email}" required th:placeholder="#{auth.register.email.placeholder}">
+                            </div>
+                            <div class="infield">
+                                <input type="password" id="signup-password" th:field="*{pass}" required th:placeholder="#{auth.register.password}">
+                            </div>
+                            <div class="error-message"></div>
+
+                            <button class="button" type="submit" name="submit" th:text="#{auth.register.button}" >Đăng Ký</button>
+                        </form>
+                    </div>
+
+
+
+                    <div class="form-container sign-in-container">
+                        <form action="" method="POST">
+                            <h1 th:text="#{auth.login.title}">Đăng Nhập</h1>
+                            <div class="social-container">
+                                <a href="#" style="font-size: 18px;" class="social facebook"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" id="dynamic-image-gg-sign-in" class="social"><img th:src="@{/resources/images/frontend/ic_google_dark.png}" alt=""></a>
+                            </div>
+                            <span th:text="#{auth.login.account}">hoặc sử dụng tài khoản của bạn</span>
+                            <div class="infield">
+                                <input type="email" id="username" name="username" required th:placeholder="#{auth.login.email}">
+                            </div>
+                            <div class="infield">
+                                <input type="password" id="signin-password" name="password" required th:placeholder="#{auth.login.password}">
+                            </div>
+                            <div class="error-message"></div>
+
+                            <a href="#" class="forgot" th:text="#{auth.login.forgot}">Quên mật khẩu?</a>
+                            <button class="button" type="submit" name="login" th:text="#{auth.login.button}">Đăng Nhập</button>
+                        </form>
+                    </div>
+                    <div class="overlay-container" id="overlayCon">
+                        <div class="overlay">
+                            <div class="overlay-panel overlay-left">
+                                <h1 th:text="#{auth.overlay.welcome}">Chào mừng!</h1>
+                                <p th:text="#{auth.overlay.login}">Để giữ liên lạc với Dahita, hãy đăng nhập bằng email của bạn</p>
+                                <button th:text="#{auth.login.button}">Đăng Nhập</button>
+                            </div>
+                            <div class="overlay-panel overlay-right">
+                                <h1 th:text="#{auth.overlay.hello}" >Chào bạn!</h1>
+                                <p th:text="#{auth.overlay.register}" >Đăng ký tài khoản của bạn và bắt đầu mua sắm cùng Dahita</p>
+                                <button type="submit" name="submit" th:text="#{auth.register.button}" >Đăng Ký</button>
+                            </div>
+                        </div>
+                        <button id="overlayBtn"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section th:replace="/client/include/footer :: footer"></section>
+    <div th:replace="/client/include/script :: script"></div>
+
+</body>
+</html>

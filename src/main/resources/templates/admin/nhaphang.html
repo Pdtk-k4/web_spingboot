@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+
+    <div class="grid_10">
+        <!-- Thông tin phiếu nhập -->
+        <div class="box">
+            <div th:if="${message}" class="success-message" th:text="${message}"></div>
+            <form th:action="@{/admin/nhaphang}" method="post" enctype="multipart/form-data" id="nhaphangForm" th:object="${nhapHangForm}">
+                <div>
+                    <a href="/admin" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
+                    <h2>Thông tin phiếu nhập</h2>
+
+                    <!-- Thông tin phiếu nhập -->
+                    <table class="form">
+                        <tr>
+                            <td><label>Mã phiếu:</label></td>
+                            <td><input type="text" readonly class="medium" th:value="${maPhieu}"/>
+                                <input type="hidden" name="maPhieu" id="maPhieu" th:value="${maPhieu}"/>
+                            </td>
+                            <td><label>Người lập:</label></td>
+                            <td><input type="text" readonly class="medium" th:value="${#authentication.getName()}"></td>
+                        </tr>
+                    </table>
+
+                    <!-- Form nhập 2 cột -->
+                    <div class="form-wrapper">
+                        <!-- Cột trái: Search + Ảnh -->
+                        <div class="form-left">
+                            <div class="form-group">
+                                <label class="required">Tên sản phẩm:</label>
+                                <input type="text" class="input-search" name="product.proname" id="proname" placeholder="Nhập tên sản phẩm hoặc tìm kiếm..." required/>
+                                <input type="hidden" id="productId" name="product.id"/>
+                                <div class="smart-search-wrapper ajaxSearchResults" id="ajaxSearchResults-3">
+                                    <div class="resultsContent"></div>
+                                </div>
+                            </div>
+                            <div class="form-image">
+                                <img id="previewCover" alt="Ảnh bìa" src="/resources/uploads/default.jpg"/>
+                                <br>
+                                <label for="coverImage" class="btn-upload">Thêm ảnh</label>
+                                <input id="coverImage" type="file" name="coverImage" accept="image/*" style="display:none" onchange="previewImage(event)"/>
+                            </div>
+                        </div>
+
+                        <!-- Cột phải: Thông tin -->
+                        <div class="form-right">
+                            <div class="form-group">
+                                <label class="required">Số lượng:</label>
+                                <input type="number" min="1" th:field="*{quantity}" required/>
+                                <div class="error-message" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Giá nhập:</label>
+                                <input type="number" min="0" th:field="*{importPrice}" required/>
+                                <div class="error-message" th:if="${#fields.hasErrors('importPrice')}" th:errors="*{importPrice}"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Nhà cung cấp:</label>
+                                <select th:field="*{product.supplier.id}" required id="supplierSelect">
+                                    <option value="">Chọn nhà cung cấp</option>
+                                    <option th:each="supplier : ${listSupplier}"
+                                            th:value="${supplier.id}"
+                                            th:text="${supplier.supname}"></option>
+                                </select>
+                                <div class="error-message" th:if="${#fields.hasErrors('product.supplier.id')}" th:errors="*{product.supplier.id}"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Thể loại:</label>
+                                <select th:field="*{product.category.id}" required id="categorySelect">
+                                    <option value="">Chọn thể loại</option>
+                                    <option th:each="category : ${listCategory}"
+                                            th:value="${category.id}"
+                                            th:text="${category.catname}"></option>
+                                </select>
+                                <div class="error-message" th:if="${#fields.hasErrors('product.category.id')}" th:errors="*{product.category.id}"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Tác giả:</label>
+                                <select th:field="*{product.author.id}" required id="authorSelect">
+                                    <option value="">Chọn tác giả</option>
+                                    <option th:each="author : ${listAuthor}"
+                                            th:value="${author.id}"
+                                            th:text="${author.auname}"></option>
+                                </select>
+                                <div class="error-message" th:if="${#fields.hasErrors('product.author.id')}" th:errors="*{product.author.id}"></div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" name="submit" class="btn btn-primary">Thêm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="mt">
+                <h2>Danh sách sản phẩm</h2>
+                <table class="data">
+                    <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá nhập</th>
+                        <th>Số lượng</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                    </thead>
+                    <tbody id="nhapHangTableBody">
+                    <tr th:each="item, iter : ${nhapHangChiTiets}">
+                        <td th:text="${iter.count}"></td>
+                        <td><img th:src="@{'/resources/uploads/' + ${item.proimage} }" width="60" style="border-radius: 6px"/></td>
+                        <td th:text="${item.product != null ? item.product.proname : 'N/A'}"></td>
+                        <td th:class="'price'" th:text="${#numbers.formatInteger(item.importPrice, 0, 'COMMA')} + ' đ'"></td>
+                        <td th:text="${item.quantity}"></td>
+                        <td th:class="'price'" th:text="${#numbers.formatInteger(item.importPrice * item.quantity, 0, 'COMMA')} + ' đ'"></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="form-actions mt">
+                    <button type="button" class="btn btn-save" id="saveNhapHang">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="clear"></div>
+</div>
+
+<div th:replace="/admin/include/footer :: footer"></div>
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                document.getElementById('previewCover').src = reader.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    $(document).ready(function() {
+        // Xử lý tìm kiếm
+        $('.input-search').on('input', function() {
+            let query = $(this).val().trim();
+            let resultsContainer = $('#ajaxSearchResults-3 .resultsContent');
+
+            if (query.length < 2) {
+                resultsContainer.empty().hide();
+                $('#productId').val('');
+                return;
+            }
+
+            $.ajax({
+                url: '/admin/search',
+                type: 'GET',
+                data: { query: query },
+                success: function(response) {
+                    console.log('Phản hồi JSON:', response);
+                    resultsContainer.empty();
+                    if (response.results && response.results.length > 0) {
+                        let html = '<ul class="search-results">';
+                        response.results.forEach(function(product, index) {
+                            console.log('Sản phẩm:', product);
+                            html += `
+                            <li class="search-result-item"
+                                data-product-id="${product.id}"
+                                data-supplier-id="${product.supplierId || ''}"
+                                data-category-id="${product.categoryId || ''}"
+                                data-author-id="${product.authorId || ''}"
+                                data-product-name="${product.proname || ''}"
+                                data-product-image="/resources/uploads/${product.proimage || 'default.jpg'}">
+                                <img src="/resources/uploads/${product.proimage || 'default.jpg'}" alt="${product.proname}">
+                                <div>
+                                    <span>${product.proname}</span>
+                                    <small>Tác giả: ${product.auname || 'Không có tác giả'}</small>
+                                    <small>Thể loại: ${product.catname || 'Không có thể loại'}</small>
+                                    <small>Nhà cung cấp: ${product.supname || 'Không có nhà cung cấp'}</small>
+                                </div>
+                            </li>`;
+                        });
+                        html += '</ul>';
+                        resultsContainer.html(html).show();
+                    } else {
+                        resultsContainer.html('<p>Không tìm thấy sản phẩm</p>').show();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('Lỗi AJAX:', xhr.status, xhr.responseText);
+                    resultsContainer.html(`<p>Lỗi khi tìm kiếm sản phẩm: ${xhr.status} - ${error}</p>`).show();
+                }
+            });
+        });
+
+        // Xử lý chọn sản phẩm từ kết quả tìm kiếm
+        $(document).on('click', '.search-result-item', function() {
+            let productId = $(this).data('product-id');
+            let productName = $(this).data('product-name');
+            let productImage = $(this).data('product-image');
+            let supplierId = $(this).data('supplier-id');
+            let categoryId = $(this).data('category-id');
+            let authorId = $(this).data('author-id');
+
+            // Điền thông tin vào form
+            $('#productId').val(productId);
+            $('.input-search').val(productName);
+            $('#previewCover').attr('src', productImage);
+            $('#supplierSelect').val(supplierId || '');
+            $('#categorySelect').val(categoryId || '');
+            $('#authorSelect').val(authorId || '');
+
+            // Ẩn kết quả tìm kiếm
+            $('#ajaxSearchResults-3 .resultsContent').hide();
+        });
+
+        // Ẩn kết quả tìm kiếm khi click ra ngoài
+        $(document).click(function(event) {
+            if (!$(event.target).closest('.smart-search-wrapper, .input-search').length) {
+                $('#ajaxSearchResults-3 .resultsContent').hide();
+            }
+        });
+
+        // Xử lý submit form bằng AJAX
+        $('#nhaphangForm').on('submit', function(event) {
+            event.preventDefault();
+
+            // Kiểm tra các trường bắt buộc trước khi gửi
+            let proname = $('.input-search').val().trim();
+            let supplierId = $('#supplierSelect').val();
+            let categoryId = $('#categorySelect').val();
+            let authorId = $('#authorSelect').val();
+            let quantity = $('#nhaphangForm input[name="quantity"]').val();
+            let importPrice = $('#nhaphangForm input[name="importPrice"]').val();
+
+            if (!proname) {
+                $('.success-message').addClass('error-message').removeClass('success-message').text('Vui lòng nhập tên sản phẩm').show();
+                return;
+            }
+            if (!supplierId) {
+                $('.success-message').addClass('error-message').removeClass('success-message').text('Vui lòng chọn nhà cung cấp').show();
+                return;
+            }
+            if (!categoryId) {
+                $('.success-message').addClass('error-message').removeClass('success-message').text('Vui lòng chọn thể loại').show();
+                return;
+            }
+            if (!authorId) {
+                $('.success-message').addClass('error-message').removeClass('success-message').text('Vui lòng chọn tác giả').show();
+                return;
+            }
+            if (!quantity || quantity <= 0) {
+                $('.success-message').addClass('error-message').removeClass('success-message').text('Vui lòng nhập số lượng hợp lệ').show();
+                return;
+            }
+            if (!importPrice || importPrice < 0) {
+                $('.success-message').addClass('error-message').removeClass('success-message').text('Vui lòng nhập giá nhập hợp lệ').show();
+                return;
+            }
+
+            let formData = new FormData(this);
+            // Log form data để debug
+            for (let [key, value] of formData.entries()) {
+                console.log('Form data: ' + key + ' = ' + value);
+            }
+
+            $.ajax({
+                url: '/admin/nhaphang',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log('Phản hồi thêm phiếu nhập:', response);
+                    $('.success-message').text(response.message).show();
+
+                    // Cập nhật bảng danh sách sản phẩm
+                    let tableBody = $('#nhapHangTableBody');
+                    tableBody.empty();
+                    if (response.nhapHangChiTiets && response.nhapHangChiTiets.length > 0) {
+                        response.nhapHangChiTiets.forEach(function(item, index) {
+                            let row = `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td><img src="/resources/uploads/${item.proimage || 'default.jpg'}" width="60" style="border-radius: 6px"/></td>
+                                <td>${item.proname}</td>
+                                <td class="price">${item.importPrice.toLocaleString('vi-VN')} đ</td>
+                                <td>${item.quantity}</td>
+                                <td class="price">${item.totalPrice.toLocaleString('vi-VN')} đ</td>
+                            </tr>`;
+                            tableBody.append(row);
+                        });
+                    } else {
+                        tableBody.append('<tr><td colspan="6">Chưa có sản phẩm nào</td></tr>');
+                    }
+
+                    // Reset form
+                    $('#nhaphangForm')[0].reset();
+                    $('#previewCover').attr('src', '/resources/uploads/default.jpg');
+                    $('#productId').val('');
+                    $('#supplierSelect').val('');
+                    $('#categorySelect').val('');
+                    $('#authorSelect').val('');
+                },
+                error: function(xhr, status, error) {
+                    console.log('Lỗi khi thêm phiếu nhập:', xhr.status, xhr.responseText);
+                    $('.success-message').addClass('error-message').removeClass('success-message').text('Lỗi khi thêm phiếu nhập: ' + xhr.status + ' - ' + (xhr.responseJSON ? xhr.responseJSON.error : error)).show();
+                }
+            });
+        });
+
+        // Xử lý nút Lưu
+        $('#saveNhapHang').on('click', function() {
+            let maPhieu = $('#maPhieu').val();
+            if (!maPhieu) {
+                $('.success-message').addClass('error-message').removeClass('success-message').text('Mã phiếu nhập không hợp lệ').show();
+                return;
+            }
+
+            $.ajax({
+                url: '/admin/nhaphang/save',
+                type: 'POST',
+                data: { maPhieu: maPhieu },
+                success: function(response) {
+                    console.log('Phản hồi lưu phiếu nhập:', response);
+                    $('.success-message').text(response.message).show();
+                    // Reset bảng và form
+                    $('#nhapHangTableBody').empty().append('<tr><td colspan="6">Chưa có sản phẩm nào</td></tr>');
+                    $('#nhaphangForm')[0].reset();
+                    $('#previewCover').attr('src', '/resources/uploads/default.jpg');
+                    $('#productId').val('');
+                    $('#supplierSelect').val('');
+                    $('#categorySelect').val('');
+                    $('#authorSelect').val('');
+                    $('#maPhieu').val('');
+                    // Tải lại trang để cập nhật mã phiếu mới
+                    window.location.reload();
+                },
+                error: function(xhr, status, error) {
+                    console.log('Lỗi khi lưu phiếu nhập:', xhr.status, xhr.responseText);
+                    $('.success-message').addClass('error-message').removeClass('success-message').text('Lỗi khi lưu phiếu nhập: ' + xhr.status + ' - ' + (xhr.responseJSON ? xhr.responseJSON.error : error)).show();
+                }
+            });
+        });
+    });
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97c5fddb99a91093',t:'MTc1NzQxMzYzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

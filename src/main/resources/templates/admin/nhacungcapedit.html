@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Sửa tên nhà cung cấp</h2>
+            <div class="block copyblock">
+
+
+                <form th:action="@{/admin/nhacungcapedit/{id}(id=${supplier.id})}" th:object="${supplier}" method="post">
+                    <table class="form">					
+                        <tr>
+                            <td>
+                                <input type="text" value="" th:field="*{supname}" class="medium" />
+                            </td>
+                        </tr>
+                        <tr> 
+                            <td>
+                                <input type="submit" name="submit" Value="Sửa" />
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

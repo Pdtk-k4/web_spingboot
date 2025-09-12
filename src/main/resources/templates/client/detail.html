@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="/client/include/head :: head"></head>
+<body>
+<section th:replace="/client/include/header :: header"></section>
+<section class="content mt-25 productDetail-page">
+    <div class="product-detail-wrapper py-5 bg-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="row product-detail-main mb-5">
+                        <div class="col-12 col-lg-9">
+                            <div class="row">
+                                <div class="col-12 col-lg-6 product-content-img">
+                                    <div class="product-image-detail box__product-gallery scroll">
+                                        <div class="text-center">
+                                            <img class="product-image-feature" th:src="@{'/resources/uploads/' + ${product.proimage} }" th:alt="${product.proname}">
+                                        </div>
+                                        <div class="thumbnail_custom">
+                                            <ul id="sliderproduct" class="site-box-content slide_product owl-carousel owl-theme owl-nav-style-3 clearfix">
+                                                <li class="product-gallery-item gallery-item" th:each="image, imageStat : ${productImages}" th:classappend="${imageStat.first} ? 'active' : ''">
+                                                    <a th:href="@{'/resources/uploads/' + ${image.piimage}}">
+                                                        <img th:src="@{'/resources/uploads/' + ${image.piimage}}" th:alt="${product.proname}">
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-lg-6 product-content-desc" id="detail-product">
+                                    <div class="product-title">
+                                        <h1 th:text="${product.proname}">Tên sách</h1>
+                                        <span id="pro_sku" th:text="'MSP: ' + ${product.id}">MSP: id sách</span>
+                                    </div>
+                                    <p class="product-type" th:text="${product.category != null ? product.category.catname : 'Không xác định'}">Thể loại sách</p>
+                                    <div class="product-price" id="price-preview">
+                                        <span class="pro-price" th:text="${#numbers.formatInteger((product.proprice * (100 - (product.prosale != null ? product.prosale : 0)) / 100), 0, 'COMMA')} + '₫'"></span>
+                                        <del th:if="${product.prosale != null and product.prosale > 0}" th:text="${#numbers.formatInteger(product.proprice, 0, 'COMMA')} + '₫'"></del>
+                                    </div>
+                                    <p class="pro-inventory" th:text="'Tồn kho: ' + ${productInventoryMap.get(product.id) ?: 0}"></p>
+                                    <form id="add-item-form" th:action="@{/client/cart/add}" method="post" class="variants clearfix">
+                                        <input type="hidden" name="id" th:value="${product.id}">
+                                        <div class="selector-actions">
+                                            <div class="quantity-area clearfix">
+                                                <input type="button" value="-" class="qty-btn decrease">
+                                                <input type="text" id="quantity" name="quantity" value="1" min="1" class="quantity-selector">
+                                                <input type="button" value="+" class="qty-btn increase">
+                                            </div>
+                                            <div class="wrap-addcart">
+                                                <button type="submit" id="add-to-cart" class="add-to-cartProduct btn btn-primary btn-addtocart addtocart-modal" name="add_cart" th:attr="data-id=${product.id}" th:text="#{product.add_to_cart}">Thêm vào giỏ</button>
+                                                <button type="submit" id="buy-now" class="add-to-cartProduct btn btn-dark btn-addtocart addtocart-modal" name="add" th:text="#{product.buy_now}">Mua ngay</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-3">
+                            <div class="widget widget_collection">
+                                <div class="widget-title" th:text="#{product.featured}">SẢN PHẨM NỔI BẬT</div>
+                                <div class="widget_collection_list">
+                                    <div class="product-item-mini" th:each="featuredProduct : ${featuredProducts}">
+                                        <div class="product-img" style="border: none;">
+                                            <div class="product-sale" style="background: #f03737;" th:if="${featuredProduct.prosale != null and featuredProduct.prosale > 0}">
+                                                <span th:text="'-' + ${featuredProduct.prosale} + '%'">-</span>
+                                            </div>
+                                            <a th:href="@{/client/detail(id=${featuredProduct.id})}">
+                                                <img th:src="@{'/resources/uploads/' + ${featuredProduct.proimage}}" th:alt="${featuredProduct.proname}">
+                                            </a>
+                                        </div>
+                                        <div class="product-content">
+                                            <h3 class="product-title">
+                                                <a th:href="@{/client/detail(id=${featuredProduct.id})}" th:text="${featuredProduct.proname}"></a>
+                                            </h3>
+                                            <div class="box-pro-prices">
+                                                <p class="pro-price highlight">
+                                                    <span class="current-price" th:text="${#numbers.formatInteger((featuredProduct.proprice * (100 - (featuredProduct.prosale != null ? featuredProduct.prosale : 0)) / 100), 0, 'COMMA')} + '₫'"></span>
+                                                    <span class="pro-price-del" th:if="${featuredProduct.prosale != null and featuredProduct.prosale > 0}">
+                                                        <del class="compare-price" th:text="${#numbers.formatInteger(featuredProduct.proprice, 0, 'COMMA')} + '₫'"></del>
+                                                    </span>
+                                                </p>
+                                                <p class="pro-inventory" th:text="'Tồn kho: ' + ${productInventoryMap.get(featuredProduct.id) ?: 0}"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-9">
+                    <div class="product-description">
+                        <nav>
+                            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                <a style="color: #495057;" class="nav-item nav-link active" id="nav-home-tab" th:text="#{product.gioithieusach}">GIỚI THIỆU SÁCH</a>
+                            </div>
+                        </nav>
+                        <div class="tab-content" id="nav-tabContent">
+                            <div class="tab-pane fade show active" id="nav-home">
+                                <p><strong th:text="${product.proname}"></strong></p>
+                                <div th:utext="${product.procontent}">Nội dung</div>
+                                <h2 style="margin-bottom: 13px; font-size:16px; margin-top: 13px;" th:text="#{product.info}">Thông tin chi tiết</h2>
+                                <table>
+                                    <tbody>
+                                    <tr>
+                                        <th th:text="#{product.mahang}">Mã hàng</th>
+                                        <td th:text="${product.id}"></td>
+                                    </tr>
+                                    <tr>
+                                        <th th:text="#{product.ncc}">Nhà Cung Cấp</th>
+                                        <td><p th:text="${product.supplier != null ? product.supplier.supname : 'Không xác định'}"></p></td>
+                                    </tr>
+                                    <tr>
+                                        <th th:text="#{product.tg}">Tác giả</th>
+                                        <td><p th:text="${product.author != null ? product.author.auname : 'Không xác định'}"></p></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-3">
+                    <div class="widget widget_collection">
+                        <div class="widget-title" th:text="#{product.splq}">SẢN PHẨM LIÊN QUAN</div>
+                        <div class="widget_collection_list">
+                            <div class="product-item-mini" th:each="relatedProduct : ${relatedProducts}">
+                                <div class="product-img" style="border: none;">
+                                    <div class="product-sale" style="background: #f03737;" th:if="${relatedProduct.prosale != null and relatedProduct.prosale > 0}">
+                                        <span th:text="'-' + ${relatedProduct.prosale} + '%'">-</span>
+                                    </div>
+                                    <a th:href="@{/client/detail(id=${relatedProduct.id})}">
+                                        <img th:src="@{'/resources/uploads/' + ${relatedProduct.proimage} }" th:alt="${relatedProduct.proname}">
+                                    </a>
+                                </div>
+                                <div class="product-content">
+                                    <h3 class="product-title">
+                                        <a th:href="@{/client/detail(id=${relatedProduct.id})}" th:text="${relatedProduct.proname}"></a>
+                                    </h3>
+                                    <div class="box-pro-prices">
+                                        <p class="pro-price highlight">
+                                            <span class="current-price" th:text="${#numbers.formatInteger((relatedProduct.proprice * (100 - (relatedProduct.prosale != null ? relatedProduct.prosale : 0)) / 100), 0, 'COMMA')} + '₫'"></span>
+                                            <span class="pro-price-del" th:if="${relatedProduct.prosale != null and relatedProduct.prosale > 0}">
+                                                <del class="compare-price" th:text="${#numbers.formatInteger(relatedProduct.proprice, 0, 'COMMA')} + '₫'"></del>
+                                            </span>
+                                        </p>
+                                        <p class="pro-inventory" th:text="'Tồn kho: ' + ${productInventoryMap.get(relatedProduct.id) ?: 0}"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section th:replace="/client/include/footer :: footer"></section>
+<div th:replace="/client/include/script :: script"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Xử lý thêm vào giỏ hàng
+        $('#add-item-form').on('submit', function(e) {
+            e.preventDefault();
+            var form = $(this);
+            var productId = $('#add-to-cart').data('id');
+            var quantity = parseInt($('#quantity').val()) || 1;
+            console.log('Adding to cart: productId=' + productId + ', quantity=' + quantity); // Debug
+
+            $.ajax({
+                url: '/client/cart/add/' + productId,
+                type: 'POST',
+                data: {
+                    quantity: quantity
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                },
+                success: function(response) {
+                    console.log('Add to cart response:', response); // Debug
+                    if (response.status === 'success') {
+                        // Cập nhật badge
+                        if (typeof updateCartBadge === 'function') {
+                            updateCartBadge();
+                            console.log('updateCartBadge called'); // Debug
+                        } else {
+                            console.error('updateCartBadge is not defined'); // Debug
+                            // Fallback: Gọi trực tiếp endpoint
+                            $.ajax({
+                                url: '/client/cart/total-unique-quantity',
+                                type: 'GET',
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                                },
+                                success: function(badgeResponse) {
+                                    $('#cartBadge').text(badgeResponse.totalUniqueQuantity || 0);
+                                    console.log('Fallback badge update:', badgeResponse); // Debug
+                                },
+                                error: function(xhr) {
+                                    console.error('Fallback badge update failed:', xhr); // Debug
+                                    $('#cartBadge').text('0');
+                                }
+                            });
+                        }
+                        alert(response.message);
+                    } else if (response.status === 'error' && response.message.includes('đăng nhập')) {
+                        console.log('Redirecting to login'); // Debug
+                        window.location.href = '/client/login';
+                    } else {
+                        console.error('Add to cart failed:', response.message); // Debug
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Add to cart error:', xhr); // Debug
+                    alert('Lỗi khi thêm sản phẩm: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+                }
+            });
+        });
+    });
+</script>
+<style>
+    .pro-inventory {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+</style>
+</body>
+</html>

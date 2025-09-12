@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Thêm nhà cung cấp</h2>
+            <div class="block copyblock mb-25">
+
+                <form th:action="@{/admin/nhacungcapadd}" th:object="${supplier}" method="post">
+                <table class="form">					
+                    <tr>
+                        <td>
+                            <input type="text" th:field="*{supname}" placeholder="Thêm nhà cung cấp..." class="medium" />
+                        </td>
+                    </tr>
+                    <tr> 
+                        <td>
+                            <input type="submit" name="submit" Value="Thêm" />
+                        </td>
+                    </tr>
+                </table>
+                </form>
+            </div>
+            <h2 class="">Danh sách nhà cung cấp</h2>
+
+			<div class="block">       
+				<table class="data display datatable" id="example">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên nhà cung cấp</th>
+                            <th>Tùy chỉnh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr class="odd gradeX" th:each="supplier : ${list}">
+                            <td th:text="${supplier.id}"></td>
+                            <td th:text="${supplier.supname}"></td>
+                            <td><a th:href="@{/admin/nhacungcapedit/{id}(id=${supplier.id})}">Sửa tên</a> || <a th:href="@{/admin/nccdel/{id}(id=${supplier.id})}" onclick="return confirm('Bạn có chắc muốn xóa?')" >Xóa</a></td>
+                        </tr>
+                    </tbody>
+			    </table>
+			</div>
+        </div>
+    </div>
+    <script type="text/javascript">
+		$(document).ready(function () {
+			setupLeftMenu();
+
+			$('.datatable').dataTable();
+			setSidebarHeight();
+		});
+	</script>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

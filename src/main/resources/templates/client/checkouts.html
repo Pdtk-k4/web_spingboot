@@ -1,0 +1,231 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="/client/include/head :: head">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+<section th:replace="/client/include/header :: header"></section>
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12 col-lg-7">
+            <div class="heading-page">
+                <div class="header-page">
+                    <h1>Thông tin đơn hàng</h1>
+                </div>
+            </div>
+            <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${transaction == null}" class="alert alert-danger">
+                Không tìm thấy đơn hàng. Vui lòng kiểm tra lại giỏ hàng.
+            </div>
+            <div th:if="${transaction != null}">
+                <div class="row wrapbox-content-cart">
+                    <div class="cart-container">
+                        <div class="cart-col-left">
+                            <div class="main-content-cart">
+                                <form action="" id="cartformpage">
+                                    <div class="row">
+                                        <div class="col-md-12 col-sm-12 col-xs-12">
+                                            <table class="table-cart">
+                                                <thead>
+                                                <tr>
+                                                    <th class="image"> </th>
+                                                    <th class="px-3">Tên sản phẩm</th>
+                                                    <th class="item">Số lượng</th>
+                                                    <th class="item">Thành tiền</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody th:if="${transaction.orders != null and not #lists.isEmpty(transaction.orders)}" id="cart-items">
+                                                <tr th:each="order : ${transaction.orders}">
+                                                    <td class="image">
+                                                        <div class="product_image">
+                                                            <a th:href="@{/client/detail(id=${order.product.id})}" th:if="${order.product != null}">
+                                                                <img th:src="@{'/resources/uploads/' + ${order.product.proimage}}" th:alt="${order.product.proname}" th:if="${order.product.proimage != null}"/>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                    <td class="item width">
+                                                        <h3>
+                                                            <a th:href="@{/client/detail(id=${order.product.id})}" th:text="${order.product != null ? order.product.proname : 'Không có tên'}" th:if="${order.product != null}"></a>
+                                                        </h3>
+                                                    </td>
+                                                    <td class="qty">
+                                                        <div class="qty quantity-partent qty-click clearfix" th:attr="data-proid=${order.product != null ? order.product.id : 0},data-tstid=${transaction.id}">
+                                                            <button type="button" class="qtyminus qty-btn">-</button>
+                                                            <input type="text" th:value="${order != null and order.quantity != null ? order.quantity : 0}" class="tc line-item-qty item-quantity bg-white" readonly>
+                                                            <button type="button" class="qtyplus qty-btn">+</button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="item">
+                                                        <p>
+                                                            <span class="line-item-total price" th:text="${order != null and order.price != null and order.quantity != null ? #numbers.formatInteger(order.price * order.quantity, 0, 'COMMA') + '₫' : '0₫'}"></span>
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                                <tbody th:unless="${transaction.orders != null and not #lists.isEmpty(transaction.orders)}">
+                                                <tr>
+                                                    <td colspan="4" class="text-center">Không có sản phẩm trong đơn hàng</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12 col-md-5 col-lg-7">
+                                            <div class="sidebox-group">
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-7 col-lg-5">
+                                            <div class="sidebox-order">
+                                                <div class="sidebox-order-inner">
+                                                    <div class="sidebox-order_total">
+                                                        <p>Tổng tiền: <span class="total-price" th:text="${totalPrice != null ? #numbers.formatInteger(totalPrice, 0, 'COMMA') + '₫' : '0₫'}"></span></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a th:href="@{/client/index}"><span>Tiếp tục mua hàng</span></a>
+            </div>
+        </div>
+        <div class="col-12 col-lg-5" th:if="${transaction != null}">
+            <h3>Thông tin giao hàng</h3>
+            <div class="user-info" th:if="${transaction != null}">
+                <div class="user-avatar" style="background-image: url(//www.gravatar.com/avatar/6d41783bd3f3e6a071476622e6024455.jpg?s=100&d=blank);filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='//www.gravatar.com/avatar/6d41783bd3f3e6a071476622e6024455.jpg?s=100&d=blank')">👤</div>
+                <div class="user-details">
+                    <span sec:authentication="name" th:text="${#authentication.principal.user.email}"></span><br>
+                    <a th:href="@{/client/logout}" class="logout">Đăng xuất</a>
+                </div>
+            </div>
+            <form id="orderForm" th:action="@{/client/order}" method="POST">
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <input type="hidden" name="transactionId" th:value="${transaction.id}"/>
+                <div class="input-group">
+                    <select name="address">
+                        <option>Thêm địa chỉ mới...</option>
+                        <option selected>70000, Vietnam</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <input type="text" name="name" placeholder="Họ và tên" required th:value="${#authentication.principal.user.fullName}">
+                </div>
+                <div class="input-group">
+                    <input type="text" name="phone" placeholder="Số điện thoại" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" name="addressDetail" placeholder="Địa chỉ" required>
+                </div>
+                <div class="payment-method">
+                    <h3>Phương thức thanh toán</h3>
+                    <label class="payment-option">
+                        <input type="radio" name="payment" value="cod" checked>
+                        <img src="https://hstatic.net/0/0/global/design/seller/image/payment/cod.svg?v=6" alt="COD">
+                        <span style="font-size: 14px;">Thanh toán khi giao hàng (COD)</span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment" value="vnpay">
+                        <img th:src="@{/resources/images/frontend/vnpay.png}" alt="VNPay" style="width: 40px; height: auto;">
+                        <span style="font-size: 14px;">Thanh toán qua VNPay</span>
+                    </label>
+                </div>
+                <button type="submit" name="submit" class="btn-submit">Đặt hàng</button>
+            </form>
+        </div>
+    </div>
+</div>
+<section th:replace="/client/include/footer :: footer"></section>
+<div th:replace="/client/include/script :: script"></div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.qtyplus').click(function() {
+            updateQuantity($(this), 1);
+        });
+
+        $('.qtyminus').click(function() {
+            updateQuantity($(this), -1);
+        });
+
+        function updateQuantity(button, change) {
+            var qtyContainer = button.closest('.qty');
+            var input = qtyContainer.find('.item-quantity');
+            var currentQty = parseInt(input.val()) || 0;
+            var newQty = currentQty + change;
+            if (newQty < 1) {
+                alert('Số lượng tối thiểu là 1');
+                return;
+            }
+            var productId = qtyContainer.data('proid') || 0;
+            var transactionId = qtyContainer.data('tstid') || 0;
+
+            $.ajax({
+                url: '/client/cart/update/' + productId,
+                type: 'POST',
+                data: {
+                    quantity: newQty,
+                    transactionId: transactionId
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        input.val(response.quantity);
+                        var lineItemTotal = qtyContainer.closest('tr').find('.line-item-total');
+                        lineItemTotal.text(response.lineItemTotal.toLocaleString('vi-VN') + '₫');
+                        $('.total-price').text(response.totalPrice.toLocaleString('vi-VN') + '₫');
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Lỗi khi cập nhật số lượng: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+                }
+            });
+        }
+
+        // Xử lý form khi chọn VNPay
+        $('#orderForm').on('submit', function(e) {
+            var paymentMethod = $('input[name="payment"]:checked').val();
+            var transactionId = $('input[name="transactionId"]').val();
+            var totalPrice = parseInt($('.total-price').text().replace(/[^0-9]/g, '')) || 0;
+
+            if (paymentMethod === 'vnpay') {
+                e.preventDefault();
+                if (totalPrice <= 0) {
+                    alert('Tổng tiền phải lớn hơn 0');
+                    return;
+                }
+                $.ajax({
+                    url: '/api/vnpay/create-payment',
+                    type: 'POST',
+                    data: {
+                        amount: totalPrice,
+                        orderId: transactionId,
+                        orderInfo: 'Payment for order ' + transactionId
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.status === 'OK' && response.data.paymentUrl) {
+                            window.location.href = response.data.paymentUrl;
+                        } else {
+                            alert('Lỗi khi tạo URL thanh toán: ' + response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert('Lỗi khi tạo URL thanh toán: ' + xhr.responseText);
+                    }
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

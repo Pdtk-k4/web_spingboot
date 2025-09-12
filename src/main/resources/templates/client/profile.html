@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/client/include/head :: head"></head>
+<body>
+<section th:replace="/client/include/header :: header"></section>
+<div class="container py-5">
+    <div class="lmm1">
+        <div class="lmm6">
+            <div class="lmm7">
+                <div class="Noo2n9">
+                    <h1 class="Q2ZiMz" th:text="#{profile.title}">Hồ sơ của tôi</h1>
+                    <div class="dgHL0u" th:text="#{profile.description}">Quản lý thông tin hồ sơ để bảo mật tài khoản</div>
+                </div>
+                <!-- Hiển thị thông báo lỗi hoặc thành công -->
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+                <!-- Form cập nhật thông tin người dùng -->
+                <form method="POST" action="/client/profile">
+                    <table class="lmm3">
+                        <tr class="lmm5">
+                            <td class="lmm4" th:text="#{profile.fullname}">Họ tên</td>
+                            <td class="lmm4">:</td>
+                            <td class="lmm4">
+                                <input type="text" name="name" th:value="${user?.fullName}" required>
+                            </td>
+                        </tr>
+                        <tr class="lmm5">
+                            <td class="lmm4" th:text="#{profile.email}">Email</td>
+                            <td class="lmm4">:</td>
+                            <td class="lmm4">
+                                <input type="email" name="email" th:value="${user?.email}" required>
+                            </td>
+                        </tr>
+                        <tr class="lmm5">
+                            <td class="lmm4" th:text="#{profile.phone}">Số điện thoại</td>
+                            <td class="lmm4">:</td>
+                            <td class="lmm4">
+                                <input type="text" name="phone" th:value="${user?.phone}">
+                            </td>
+                        </tr>
+                        <tr class="lmm5">
+                            <td class="lmm4" th:text="#{profile.address}">Địa chỉ</td>
+                            <td class="lmm4">:</td>
+                            <td class="lmm4">
+                                <input type="text" name="address" th:value="${user?.address}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">
+                                <input type="submit" th:value="#{profile.update}" style="margin-top: 10px;">
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<section th:replace="/client/include/footer :: footer"></section>
+<div th:replace="/client/include/script :: script"></div>
+</body>
+</html>

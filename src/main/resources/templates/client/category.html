@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/client/include/head :: head"></head>
+<body>
+<section th:replace="/client/include/header :: header"></section>
+<section class="content mt-25">
+    <div class="container">
+        <div class="py-2" id="collection-body">
+            <div class="row">
+                <div th:replace="/client/include/sidebar :: sidebar"></div>
+                <div class="col-lg-9 col-12">
+                    <div class="wrap-collection-title">
+                        <div class="heading-collection">
+                            <div class="row">
+                                <div class="col-12 col-md-8">
+                                    <h1 class="title" th:text="${category != null} ? ${category.catname} : 'Danh mục sản phẩm'"></h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-here section-box-bg">
+                        <div class="row content-product-list product-list filter clearfix">
+                            <div class="col-md-4 col-6" th:each="product : ${products}">
+                                <div class="item">
+                                    <div class="product-item">
+                                        <div class="product-img" style="border: none;">
+                                            <div class="product-sale" style="background: #f03737;" th:if="${product.prosale > 0}">
+                                                <span th:text="'-' + ${product.prosale} + '%'"></span>
+                                            </div>
+                                            <a th:href="@{'/client/detail?id=' + ${product.id}}"><img style="max-height: 240px;" th:src="@{'/resources/uploads/' + ${product.proimage}}" alt="Product Image"></a>
+                                            <div class="button-add d-none d-md-flex">
+                                                <button title="Thêm vào giỏ" data-tooltip="Thêm vào giỏ hàng" th:onclick="'addToCart(' + ${product.id} + ')'"><i class="fa-solid fa-cart-plus"></i></button>
+                                                <a th:href="@{'/client/detail?id=' + ${product.id}}" data-tooltip="Chi tiết"><i class="fa-regular fa-eye"></i></a>
+                                            </div>
+                                        </div>
+                                        <div class="product-detail">
+                                            <h3 class="pro-name"><a th:href="@{'/client/detail?id=' + ${product.id}}" th:text="${product.proname}"></a></h3>
+                                            <p class="pro-price">
+                                                <span class="current-price" th:text="${#numbers.formatInteger(product.proprice * (100 - product.prosale) / 100, 0, 'COMMA')} + '₫'"></span>
+                                                <del class="compare-price" th:if="${product.prosale > 0}" th:text="${#numbers.formatInteger(product.proprice, 0, 'COMMA')} + '₫'"></del>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" th:if="${products.isEmpty()}">
+                                <p th:text="#{category.mess}">Không có sản phẩm nào trong danh mục này.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section th:replace="/client/include/footer :: footer"></section>
+<div th:replace="/client/include/script :: script"></div>
+</body>
+</html>

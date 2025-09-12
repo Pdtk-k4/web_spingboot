@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+	<div th:replace="/admin/include/header :: header"></div>
+	<div class="clear"></div>
+	<div th:replace="/admin/include/header :: navbar"></div>
+	<div class="clear"></div>
+	<div th:replace="/admin/include/sidebar :: sidebar"></div>
+	<div class="grid_10">
+		<div class="box round first grid">
+			<h2>Inbox</h2>
+			<div class="block">
+				<table class="data display datatable" id="example">
+					<thead>
+					<tr>
+						<th>STT</th>
+						<th>Tên Khách hàng</th>
+						<th>Số lượng</th>
+						<th>Tổng tiền</th>
+						<th>Địa chỉ</th>
+						<th>Số điện thoại</th>
+						<th>Ngày đặt</th>
+						<th>Trạng thái</th>
+						<th>Tùy chỉnh</th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr th:each="inbox, iterStat : ${inboxList}" class="odd gradeX">
+						<td th:text="${iterStat.count}"></td>
+						<td th:text="${inbox.customerName} ?: 'N/A'"></td>
+						<td th:text="${inbox.quantity} ?: 0"></td>
+						<td th:text="${inbox.price} ?: 0"></td>
+						<td th:text="${inbox.customerAddress} ?: 'N/A'"></td>
+						<td th:text="${inbox.customerPhone} ?: 'N/A'"></td>
+						<td th:text="${inbox.date != null} ? ${#temporals.format(inbox.date, 'dd/MM/yyyy HH:mm')} : 'N/A'"></td>
+						<td th:style="${inbox.status} ? 'color: green' : 'color: red'"
+							th:text="${inbox.status} ? 'Đã duyệt' : 'Chờ duyệt'"></td>
+						<td><a th:href="@{/admin/detail_inbox(id=${inbox.id})}">Xem chi tiết</a></td>
+					</tr>
+					<tr th:if="${inboxList == null or inboxList.isEmpty()}">
+						<td colspan="9" style="text-align: center;">Không có đơn hàng nào</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        setupLeftMenu();
+
+        $('.datatable').dataTable();
+        setSidebarHeight();
+    });
+</script>
+	<div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

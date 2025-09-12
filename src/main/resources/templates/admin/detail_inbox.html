@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<style>
+    table.table-cart tr td.item {
+    padding-left: 15px;
+}
+table.table-cart tr td.item p {
+    margin-bottom: 5px;
+}
+table.table-cart tr td.item .price {
+    color: #f6001a;
+    font-weight: 500;
+    font-size: 16px;
+}
+.price{
+    color: #f6001a;
+    font-weight: 500;
+    font-size: 16px;
+}
+table.table-cart tr td.item p .del {
+    display: block;
+}
+table.table-cart tr td.item p del {
+    font-size: 12px;
+}
+table.table-cart tr td.item p .sale {
+    background: #f00;
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 3px;
+    padding: 1px 5px;
+}
+</style>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Chi tiết đơn hàng</h2>
+            <span class="back"><a th:href="@{/admin/inbox}"><i class="fa-solid fa-arrow-left"></i></a></span>
+            <div class="block copyblock mb-25">
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                <form action="/admin/approve_inbox" method="post">
+                    <input type="hidden" name="inboxId" th:value="${inbox.id}"/>
+                    <table class="form">
+                        <tr>
+                            <td><label>Tên Khách Hàng</label></td>
+                            <td><input type="text" readonly class="medium" th:value="${inbox.customerName} ?: 'N/A'"/></td>
+                        </tr>
+                        <tr>
+                            <td><label>Địa chỉ</label></td>
+                            <td><input type="text" readonly class="medium" th:value="${inbox.customerAddress} ?: 'N/A'"/></td>
+                        </tr>
+                        <tr>
+                            <td><label>Số điện thoại</label></td>
+                            <td><input type="text" readonly class="medium" th:value="${inbox.customerPhone} ?: 'N/A'"/></td>
+                        </tr>
+                        <tr>
+                            <td><label>Tổng số lượng</label></td>
+                            <td><input type="text" readonly class="medium" th:value="${totalQuantity} ?: 0"/></td>
+                        </tr>
+                        <tr>
+                            <td><label>Tổng tiền</label></td>
+                            <td><input type="text" readonly class="medium price" th:value="${#numbers.formatInteger(totalPrice, 0, 'COMMA')} + '₫'"/></td>
+                        </tr>
+                        <tr th:if="${inbox.status == false}">
+                            <td><input type="submit" name="submit" value="Duyệt"/></td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+            <h2>Đơn hàng được đặt</h2>
+            <div class="block">
+                <table class="data display datatable table-cart" id="example">
+                    <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá</th>
+                        <th>Số lượng</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="detail, iterStat : ${detailInboxList}" class="odd gradeX">
+                        <td th:text="${iterStat.count}"></td>
+                        <td><img th:src="@{'/resources/uploads/' + ${detail.product.proimage}}" style="max-width: 100px;"/></td>
+                        <td th:text="${detail.product.proname} ?: 'N/A'"></td>
+                        <td class="item">
+                            <p>
+                                    <span th:if="${detail.product.prosale > 0}">
+                                        <span class="price" th:text="${#numbers.formatInteger(detail.product.proprice - (detail.product.proprice * detail.product.prosale / 100), 0, 'COMMA')} + '₫'"></span>
+                                        <span class="del">
+                                            <del th:text="${#numbers.formatInteger(detail.product.proprice, 0, 'COMMA')} + '₫'"></del>
+                                            <span class="sale" th:text="'-' + ${detail.product.prosale} + '%'"></span>
+                                        </span>
+                                    </span>
+                                <span th:if="${detail.product.prosale <= 0}">
+                                        <span class="price" th:text="${#numbers.formatInteger(detail.product.proprice, 0, 'COMMA')} + '₫'"></span>
+                                    </span>
+                            </p>
+                        </td>
+                        <td th:text="${detail.quantity} ?: 0"></td>
+                        <td class="price" th:text="${#numbers.formatInteger((detail.product.proprice - (detail.product.proprice * detail.product.prosale / 100)) * detail.quantity, 0, 'COMMA')} + '₫'"></td>
+                    </tr>
+                    <tr th:if="${detailInboxList == null or detailInboxList.isEmpty()}">
+                        <td colspan="6" style="text-align: center;">Không có sản phẩm nào</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+		$(document).ready(function () {
+			setupLeftMenu();
+
+			$('.datatable').dataTable();
+			setSidebarHeight();
+		});
+	</script>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>
+
+

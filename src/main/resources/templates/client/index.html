@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="/client/include/head :: head"></head>
+<body>
+<section th:replace="/client/include/header :: header"></section>
+<section class="content mt-25">
+    <div class="container">
+        <div class="row flex-row-reverse">
+            <div class="col-12 col-lg-9">
+                <div id="home-slider" class="mb-30">
+                    <div class="list">
+                        <div class="item" th:each="slide, iterStat : ${activeSlides}">
+                            <a th:href="${slide.sllink}" th:attr="target=${slide.sltarget}">
+                                <img style="max-height: 426.25px;" th:src="@{'/resources/uploads/' + ${slide.slimage}}" th:alt="${slide.sltitle}">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="buttons">
+                        <button type="button" role="presentation" id="prev" class="owl-prev"><i class="fa-solid fa-angle-left"></i></button>
+                        <button type="button" role="presentation" id="next" class="owl-next"><i class="fa-solid fa-angle-right"></i></button>
+                    </div>
+                    <div class="owl-dots">
+                        <div class="owl-dot"><span class="active"></span></div>
+                        <div class="owl-dot"><span></span></div>
+                        <div class="owl-dot"><span></span></div>
+                        <div class="owl-dot"><span></span></div>
+                        <div class="owl-dot"><span></span></div>
+                    </div>
+                </div>
+                <script th:src="@{/resources/js/frontend/slide-show.js}"></script>
+
+                <div th:each="category : ${featuredCategories}">
+                    <section class="home-featured-product mb-30">
+                        <div class="section-heading">
+                            <h2 class="section-title"><span th:text="${category.catname}"></span></h2>
+                        </div>
+                        <div class="section-box-bg">
+                            <div class="large-12 columns">
+                                <div class="owl-carousel owl-theme owl-nav-style-1">
+                                    <div class="item" th:each="product : ${categoryProductsMap.get(category)}">
+                                        <div class="product-item">
+                                            <div class="product-img" style="border: none;">
+                                                <div class="product-sale" style="background: #f03737;" th:if="${product.prosale > 0}">
+                                                    <span th:text="'-' + ${product.prosale} + '%'"></span>
+                                                </div>
+                                                <a th:href="@{/client/detail(id=${product.id})}"><img style="max-height: 240px;" th:src="@{'/resources/uploads/' + ${product.proimage} ?: 'default.jpg'}" alt=""></a>
+                                                <div class="button-add d-none d-md-flex">
+                                                    <button title="Thêm vào giỏ" data-tooltip="Thêm vào giỏ hàng" th:onclick="'addToCart(' + ${product.id} + ')'"><i class="fa-solid fa-cart-plus"></i></button>
+                                                    <a th:href="@{/client/detail(id=${product.id})}" data-tooltip="Chi tiết"><i class="fa-regular fa-eye"></i></a>
+                                                </div>
+                                            </div>
+                                            <div class="product-detail">
+                                                <h3 class="pro-name"><a th:href="@{/client/detail(id=${product.id})}" th:text="${product.proname}"></a></h3>
+                                                <p class="pro-price">
+                                                    <span class="current-price" th:text="${#numbers.formatInteger(product.proprice * (100 - product.prosale) / 100, 0, 'COMMA') + '₫'}"></span>
+                                                    <del class="compare-price" th:if="${product.prosale > 0}" th:text="${#numbers.formatInteger(product.proprice, 0, 'COMMA') + '₫'}"></del>
+                                                </p>
+                                                <p class="pro-inventory" th:text="'Tồn kho: ' + ${productInventoryMap.get(product.id) ?: 0}"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div th:replace="/client/include/sidebar :: sidebar"></div>
+        </div>
+    </div>
+</section>
+<section th:replace="/client/include/footer :: footer"></section>
+<div th:replace="/client/include/script :: script"></div>
+<style>
+    .pro-inventory {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+</style>
+</body>
+</html>

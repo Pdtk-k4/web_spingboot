@@ -1,0 +1,55 @@
+<div class="col-12 col-lg-3" th:fragment="sidebar">
+    <div class="sidebar">
+        <div class="widget widget_menu d-none d-md-block mb-3">
+            <h3 class="sidebar-title" th:text="#{index.sidebar.category}">Danh mục</h3>
+            <div class="sidebar-menu">
+                <ul>
+                    <li class="has-child dropdown" th:each="category : ${listCategory}">
+                        <span onclick=toggleSubMenu(this)><a th:href="@{/client/category(id=${category.id})}"
+                                                             th:text="${category.catname}"></a><i
+                                class="fa-solid fa-angle-down"></i></span>
+                        <ul>
+                            <div>
+                                <li class="">
+                                    <a th:href="@{/client/category}"></a>
+                                </li>
+                            </div>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="widget widget_collection mb-30" style="padding: 10px 18px;">
+            <div class="widget-title" th:text="#{index.sidebar.newbook}">Sách mới</div>
+            <div class="widget_collection_list">
+                <div class="product-item-mini" th:each="product : ${newProducts}">
+                    <div class="product-img" style="border: none;">
+                        <div class="product-sale" style="background: #f03737;"
+                             th:if="${product.prosale != null and product.prosale > 0}">
+                            <span th:text="'-' + ${product.prosale} + '%'">-</span>
+                        </div>
+                        <a th:href="@{/client/detail(id=${product.id})}">
+                            <img class="" th:src="@{'/resources/uploads/' + ${product.proimage}}"
+                                 th:alt="${product.proname}">
+                        </a>
+                    </div>
+                    <div class="product-content">
+                        <h3 class="product-title">
+                            <a th:href="@{/client/detail(id=${product.id})}" th:text="${product.proname}"></a>
+                        </h3>
+                        <div class="box-pro-prices">
+                            <p class="pro-price highlight">
+                                <span class="current-price"
+                                      th:text="${#numbers.formatInteger((product.proprice * (100 - (product.prosale != null ? product.prosale : 0)) / 100), 0, 'COMMA')} + '₫'"></span>
+                                <span class="pro-price-del" th:if="${product.prosale != null and product.prosale > 0}">
+                                    <del class="compare-price"
+                                         th:text="${#numbers.formatInteger(product.proprice, 0, 'COMMA')} + '₫'"></del>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
