@@ -2068,4 +2068,23 @@ p {
     text-decoration: none;
 }
 
+.product-item.out-of-stock {
+    opacity: 0.85; /* Giảm opacity nhẹ để vẫn nhìn rõ */
+    filter: blur(1px); /* Làm mờ nhẹ */
+    position: relative;
+}
 
+.out-of-stock-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 0, 0, 0.9); /* Nền đỏ đậm hơn để tăng độ tương phản */
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 18px; /* Tăng kích thước chữ */
+    z-index: 10; /* Đảm bảo lớp phủ nằm trên hình ảnh */
+    text-transform: uppercase; /* Chữ in hoa để nổi bật */
+}

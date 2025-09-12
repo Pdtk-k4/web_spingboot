@@ -7,66 +7,152 @@
   <script th:src="@{/resources/js/frontend/scroll.js}"></script>
   <script th:src="@{/resources/js/frontend/bootstrap.bundle.min.js}"></script>
   <script th:inline="javascript">
-    function addToCart(productId) {
+    function addToCart(productId, inventoryQuantity) {
       const quantity = 1; // Mặc định quantity = 1
-      console.log('Adding to cart: productId=' + productId + ', quantity=' + quantity); // Debug
+      console.log('Checking cart for productId=' + productId + ', inventoryQuantity=' + inventoryQuantity); // Debug
+
+      // Kiểm tra tồn kho trước
+      if (inventoryQuantity <= 0) {
+        alert("Sản phẩm này đã hết hàng!");
+        return;
+      }
+
+      // Lấy thông tin giỏ hàng để kiểm tra số lượng hiện tại
       $.ajax({
-        url: '/client/cart/add/' + productId,
-        type: 'POST',
-        data: { quantity: quantity },
+        url: '/client/cart/json',
+        type: 'GET',
         headers: {
           'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
         },
         dataType: 'json',
-        success: function(response) {
-          console.log('Add to cart response:', response); // Debug
-          if (response.status === 'success') {
-            // Cập nhật badge từ totalUniqueQuantity
-            if (response.totalUniqueQuantity !== undefined) {
-              $('#cartBadge').text(response.totalUniqueQuantity || 0);
-              console.log('Badge updated:', response.totalUniqueQuantity); // Debug
-            } else if (typeof updateCartBadge === 'function') {
-              updateCartBadge();
-              console.log('updateCartBadge called'); // Debug
-            } else {
-              console.error('updateCartBadge is not defined'); // Debug
-              // Fallback: Gọi trực tiếp endpoint
-              $.ajax({
-                url: '/client/cart/total-unique-quantity',
-                type: 'GET',
-                headers: {
-                  'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
-                },
-                success: function(badgeResponse) {
-                  $('#cartBadge').text(badgeResponse.totalUniqueQuantity || 0);
-                  console.log('Fallback badge update:', badgeResponse); // Debug
-                },
-                error: function(xhr) {
-                  console.error('Fallback badge update failed:', xhr); // Debug
-                  $('#cartBadge').text('0');
-                }
-              });
-            }
-            alert(response.message);
-          } else if (response.status === 'error' && response.message.includes('đăng nhập')) {
-            console.log('Redirecting to login'); // Debug
-            sessionStorage.setItem('pendingProductId', productId);
-            sessionStorage.setItem('pendingQuantity', quantity);
-            window.location.href = '/client/login';
-          } else {
-            console.error('Add to cart failed:', response.message); // Debug
-            alert(response.message);
+        success: function(cartResponse) {
+          console.log('Cart response:', cartResponse); // Debug
+          // Tìm số lượng hiện tại của sản phẩm trong giỏ hàng
+          let currentQuantity = 0;
+          if (cartResponse && cartResponse.orders) {
+            const order = cartResponse.orders.find(o => o.productId === productId);
+            currentQuantity = order ? order.quantity : 0;
           }
+
+          // Kiểm tra xem số lượng muốn thêm có vượt quá tồn kho không
+          if (currentQuantity + quantity > inventoryQuantity) {
+            alert("Số lượng trong kho không đủ! Chỉ còn " + inventoryQuantity + " sản phẩm.");
+            return;
+          }
+
+          // Thêm sản phẩm vào giỏ hàng
+          $.ajax({
+            url: '/client/cart/add/' + productId,
+            type: 'POST',
+            data: { quantity: quantity },
+            headers: {
+              'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+            },
+            dataType: 'json',
+            success: function(response) {
+              console.log('Add to cart response:', response); // Debug
+              if (response.status === 'success') {
+                // Cập nhật badge từ totalUniqueQuantity
+                if (response.totalUniqueQuantity !== undefined) {
+                  $('#cartBadge').text(response.totalUniqueQuantity || 0);
+                  console.log('Badge updated:', response.totalUniqueQuantity); // Debug
+                } else {
+                  // Fallback: Gọi endpoint total-unique-quantity
+                  $.ajax({
+                    url: '/client/cart/total-unique-quantity',
+                    type: 'GET',
+                    headers: {
+                      'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                    },
+                    success: function(badgeResponse) {
+                      $('#cartBadge').text(badgeResponse.totalUniqueQuantity || 0);
+                      console.log('Fallback badge update:', badgeResponse); // Debug
+                    },
+                    error: function(xhr) {
+                      console.error('Fallback badge update failed:', xhr); // Debug
+                      $('#cartBadge').text('0');
+                    }
+                  });
+                }
+                alert(response.message);
+              } else if (response.status === 'error' && response.message.includes('đăng nhập')) {
+                console.log('Redirecting to login'); // Debug
+                sessionStorage.setItem('pendingProductId', productId);
+                sessionStorage.setItem('pendingQuantity', quantity);
+                window.location.href = '/client/login';
+              } else {
+                console.error('Add to cart failed:', response.message); // Debug
+                alert(response.message);
+              }
+            },
+            error: function(xhr) {
+              console.error('Add to cart error:', xhr); // Debug
+              if (xhr.status === 401) {
+                sessionStorage.setItem('pendingProductId', productId);
+                sessionStorage.setItem('pendingQuantity', quantity);
+                window.location.href = '/client/login';
+              } else {
+                alert('Lỗi khi thêm sản phẩm: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+              }
+            }
+          });
         },
         error: function(xhr) {
-          console.error('Add to cart error:', xhr); // Debug
-          if (xhr.status === 401) {
-            sessionStorage.setItem('pendingProductId', productId);
-            sessionStorage.setItem('pendingQuantity', quantity);
-            window.location.href = '/client/login';
-          } else {
-            alert('Lỗi khi thêm sản phẩm: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
-          }
+          console.error('Cart fetch error:', xhr); // Debug
+          // Nếu không lấy được giỏ hàng, vẫn gửi yêu cầu thêm để backend kiểm tra
+          $.ajax({
+            url: '/client/cart/add/' + productId,
+            type: 'POST',
+            data: { quantity: quantity },
+            headers: {
+              'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+            },
+            dataType: 'json',
+            success: function(response) {
+              console.log('Add to cart response:', response); // Debug
+              if (response.status === 'success') {
+                if (response.totalUniqueQuantity !== undefined) {
+                  $('#cartBadge').text(response.totalUniqueQuantity || 0);
+                  console.log('Badge updated:', response.totalUniqueQuantity); // Debug
+                } else {
+                  $.ajax({
+                    url: '/client/cart/total-unique-quantity',
+                    type: 'GET',
+                    headers: {
+                      'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                    },
+                    success: function(badgeResponse) {
+                      $('#cartBadge').text(badgeResponse.totalUniqueQuantity || 0);
+                      console.log('Fallback badge update:', badgeResponse); // Debug
+                    },
+                    error: function(xhr) {
+                      console.error('Fallback badge update failed:', xhr); // Debug
+                      $('#cartBadge').text('0');
+                    }
+                  });
+                }
+                alert(response.message);
+              } else if (response.status === 'error' && response.message.includes('đăng nhập')) {
+                console.log('Redirecting to login'); // Debug
+                sessionStorage.setItem('pendingProductId', productId);
+                sessionStorage.setItem('pendingQuantity', quantity);
+                window.location.href = '/client/login';
+              } else {
+                console.error('Add to cart failed:', response.message); // Debug
+                alert(response.message);
+              }
+            },
+            error: function(xhr) {
+              console.error('Add to cart error:', xhr); // Debug
+              if (xhr.status === 401) {
+                sessionStorage.setItem('pendingProductId', productId);
+                sessionStorage.setItem('pendingQuantity', quantity);
+                window.location.href = '/client/login';
+              } else {
+                alert('Lỗi khi thêm sản phẩm: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+              }
+            }
+          });
         }
       });
     }
@@ -96,11 +182,10 @@
         });
       }
     });
-
   </script>
   <script>
-    const nextIcon ='<i class="fa-solid fa-angle-right"></i>'
-    const prevIcon ='<i class="fa-solid fa-angle-left"></i>'
+    const nextIcon ='<i class="fa-solid fa-angle-right"></i>';
+    const prevIcon ='<i class="fa-solid fa-angle-left"></i>';
     $(document).ready(function() {
       $('.owl-carousel').owlCarousel({
         loop: true,
@@ -127,8 +212,8 @@
             margin: 20
           }
         }
-      })
-    })
+      });
+    });
   </script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -136,21 +221,21 @@
       const increaseBtn = document.querySelector(".increase");
       const decreaseBtn = document.querySelector(".decrease");
 
-      increaseBtn.addEventListener("click", function() {
-        let currentValue = parseInt(quantityInput.value);
-        quantityInput.value = currentValue + 1;
-      });
+      if (increaseBtn && quantityInput) {
+        increaseBtn.addEventListener("click", function() {
+          let currentValue = parseInt(quantityInput.value);
+          quantityInput.value = currentValue + 1;
+        });
+      }
 
-      decreaseBtn.addEventListener("click", function() {
-        let currentValue = parseInt(quantityInput.value);
-        if (currentValue > 1) {
-          quantityInput.value = currentValue - 1;
-        }
-      });
+      if (decreaseBtn && quantityInput) {
+        decreaseBtn.addEventListener("click", function() {
+          let currentValue = parseInt(quantityInput.value);
+          if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+          }
+        });
+      }
     });
   </script>
-
-
-
-
 </div>

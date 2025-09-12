@@ -1,8 +1,11 @@
 package com.example.bookdahita.controller.client;
 
 import com.example.bookdahita.models.CustomUserDetail;
+import com.example.bookdahita.models.Inventory;
+import com.example.bookdahita.models.Order;
 import com.example.bookdahita.models.Transaction;
 import com.example.bookdahita.models.User;
+import com.example.bookdahita.repository.InventoryRepository;
 import com.example.bookdahita.service.ProductService;
 import com.example.bookdahita.service.TransactionService;
 import jakarta.servlet.http.HttpSession;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/client")
@@ -29,6 +33,9 @@ public class CartController {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private InventoryRepository inventoryRepository; // Thêm repository để lấy tồn kho
 
     @GetMapping("/cart/count")
     public ResponseEntity<Map<String, Integer>> getCartCount(@AuthenticationPrincipal CustomUserDetail userDetail) {
@@ -80,6 +87,43 @@ public class CartController {
         }
     }
 
+    @GetMapping("/cart/json")
+    public ResponseEntity<Map<String, Object>> getCartJson(@AuthenticationPrincipal CustomUserDetail userDetail) {
+        Map<String, Object> response = new HashMap<>();
+        if (userDetail == null) {
+            response.put("orders", new java.util.ArrayList<>());
+            response.put("totalUniqueQuantity", 0);
+            return ResponseEntity.ok(response);
+        }
+        try {
+            User user = userDetail.getUser();
+            Transaction transaction = transactionService.getCartTransaction(user);
+            if (transaction == null || transaction.getOrders() == null || transaction.getOrders().isEmpty()) {
+                response.put("orders", new java.util.ArrayList<>());
+                response.put("totalUniqueQuantity", 0);
+            } else {
+                response.put("orders", transaction.getOrders().stream()
+                        .filter(order -> order != null && order.getProduct() != null)
+                        .map(order -> new HashMap<String, Object>() {{
+                            put("productId", order.getProduct().getId());
+                            put("quantity", order.getQuantity());
+                        }})
+                        .collect(Collectors.toList()));
+                response.put("totalUniqueQuantity", (int) transaction.getOrders().stream()
+                        .filter(order -> order != null && order.getProduct() != null)
+                        .map(order -> order.getProduct().getId())
+                        .distinct()
+                        .count());
+            }
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.severe("Error in getCartJson: " + e.getMessage());
+            response.put("orders", new java.util.ArrayList<>());
+            response.put("totalUniqueQuantity", 0);
+            return ResponseEntity.ok(response);
+        }
+    }
+
     @GetMapping("/cart")
     public String showCart(@AuthenticationPrincipal CustomUserDetail userDetail, Model model) {
         logger.info("Accessing /client/cart");
@@ -110,7 +154,7 @@ public class CartController {
                 int totalPrice = transaction.getOrders().stream()
                         .mapToInt(order -> {
                             if (order == null || order.getPrice() == null || order.getQuantity() == null) return 0;
-                            return order.getPrice() * order.getQuantity(); // Giá đã giảm từ TransactionService
+                            return order.getPrice() * order.getQuantity();
                         })
                         .sum();
                 int totalUniqueQuantity = (int) transaction.getOrders().stream()
@@ -151,9 +195,41 @@ public class CartController {
         }
         try {
             User user = userDetail.getUser();
-            transactionService.addProductToTransaction(user, productService.findById(productId), quantity);
+            var product = productService.findById(productId);
+            if (product == null) {
+                response.put("status", "error");
+                response.put("message", "Sản phẩm không tồn tại");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            // Kiểm tra tồn kho
+            Inventory inventory = inventoryRepository.findByProduct(product)
+                    .orElse(Inventory.builder().quantity(0).build());
+            int inventoryQuantity = inventory.getQuantity();
+            Transaction transaction = transactionService.getCartTransaction(user);
+            int currentQuantity = (transaction != null && transaction.getOrders() != null) ?
+                    transaction.getOrders().stream()
+                            .filter(order -> order != null && order.getProduct() != null && order.getProduct().getId().equals(productId))
+                            .mapToInt(Order::getQuantity)
+                            .sum() : 0;
+
+            if (currentQuantity + quantity > inventoryQuantity) {
+                response.put("status", "error");
+                response.put("message", "Số lượng trong kho không đủ! Chỉ còn " + inventoryQuantity + " sản phẩm.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            // Thêm sản phẩm vào giỏ hàng
+            transactionService.addProductToTransaction(user, product, quantity);
             response.put("status", "success");
             response.put("message", "Sản phẩm đã được thêm vào giỏ hàng");
+            response.put("totalUniqueQuantity", String.valueOf(
+                    (transaction != null && transaction.getOrders() != null) ?
+                            transaction.getOrders().stream()
+                                    .filter(order -> order != null && order.getProduct() != null)
+                                    .map(order -> order.getProduct().getId())
+                                    .distinct()
+                                    .count() : 0));
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.severe("Error adding product to cart: " + e.getMessage());
@@ -187,17 +263,33 @@ public class CartController {
             if (!transaction.getId().equals(transactionId)) {
                 throw new IllegalArgumentException("Transaction ID không hợp lệ");
             }
+            // Kiểm tra tồn kho
+            var product = productService.findById(productId);
+            if (product == null) {
+                response.put("status", "error");
+                response.put("message", "Sản phẩm không tồn tại");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            Inventory inventory = inventoryRepository.findByProduct(product)
+                    .orElse(Inventory.builder().quantity(0).build());
+            int inventoryQuantity = inventory.getQuantity();
+            if (quantity > inventoryQuantity) {
+                response.put("status", "error");
+                response.put("message", "Số lượng trong kho không đủ! Chỉ còn " + inventoryQuantity + " sản phẩm.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
             transactionService.updateOrderQuantity(transaction, productId, quantity);
             int totalPrice = transaction.getOrders().stream()
                     .mapToInt(order -> {
                         if (order == null || order.getPrice() == null || order.getQuantity() == null) return 0;
-                        return order.getPrice() * order.getQuantity(); // Giá đã giảm
+                        return order.getPrice() * order.getQuantity();
                     })
                     .sum();
             int lineItemTotal = transaction.getOrders().stream()
                     .filter(order -> order != null && order.getProduct() != null && order.getProduct().getId().equals(productId))
                     .findFirst()
-                    .map(order -> order.getPrice() * quantity) // Giá đã giảm
+                    .map(order -> order.getPrice() * quantity)
                     .orElse(0);
             response.put("status", "success");
             response.put("message", "Cập nhật số lượng thành công");
@@ -259,7 +351,7 @@ public class CartController {
                 int totalPrice = transaction.getOrders().stream()
                         .mapToInt(order -> {
                             if (order == null || order.getPrice() == null || order.getQuantity() == null) return 0;
-                            return order.getPrice() * order.getQuantity(); // Giá đã giảm
+                            return order.getPrice() * order.getQuantity();
                         })
                         .sum();
                 int totalUniqueQuantity = (int) transaction.getOrders().stream()

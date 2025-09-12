@@ -103,11 +103,11 @@
                                                         <p><span th:text="#{cart.tongtien}"></span>: <span class="total-price" th:text="${totalPrice != null ? #numbers.formatInteger(totalPrice, 0, 'COMMA') + '₫' : '0₫'}"></span></p>
                                                     </div>
                                                     <div class="sidebox-order_action">
-                                                        <a th:text="#{cart.thanhtoan}" th:href="@{/client/checkouts(id=${transaction.id})}" class="btn btn-dark btncart-checkout" th:unless="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}" style="display:none;">THANH TOÁN</a>
-                                                        <a th:text="#{cart.thanhtoan}" th:href="@{/client/checkouts(id=${transaction.id})}" class="btn btn-dark btncart-checkout" th:if="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}">THANH TOÁN</a>
+                                                        <button type="button" th:text="#{cart.thanhtoan}" class="btn btn-dark btncart-checkout" th:onclick="'proceedToCheckout(' + ${transaction.id} + ')'" th:if="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}">THANH TOÁN</button>
+                                                        <button type="button" th:text="#{cart.thanhtoan}" class="btn btn-dark btncart-checkout" style="display:none;" th:unless="${transaction != null and transaction.orders != null and not #lists.isEmpty(transaction.orders)}">THANH TOÁN</button>
                                                         <p class="link-continue">
                                                             <a href="/DahitaBook">
-                                                                <i class="fa fa-reply" ></i> <span th:text="#{carrt.ttmh}"></span>
+                                                                <i class="fa fa-reply"></i> <span th:text="#{carrt.ttmh}"></span>
                                                             </a>
                                                         </p>
                                                     </div>
@@ -125,7 +125,7 @@
             <div th:unless="${transaction != null}">
                 <div class="heading-page">
                     <div class="header-page">
-                        <h1 th:text="#{cart.giohangcuaban}">>Giỏ hàng của bạn</h1>
+                        <h1 th:text="#{cart.giohangcuaban}">Giỏ hàng của bạn</h1>
                         <p class="count-cart" th:text="#{cart.khongsp}">Có 0 sản phẩm trong giỏ hàng</p>
                     </div>
                 </div>
@@ -249,6 +249,30 @@
             }
         });
     });
+
+    function proceedToCheckout(transactionId) {
+        $.ajax({
+            url: '/client/inventory/check',
+            type: 'POST',
+            data: { transactionId: transactionId },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    window.location.href = '/client/checkouts?id=' + transactionId;
+                } else {
+                    alert(response.message);
+                    window.location.reload(); // Tải lại trang để cập nhật giỏ hàng
+                }
+            },
+            error: function(xhr) {
+                alert('Lỗi khi kiểm tra tồn kho: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.statusText));
+                window.location.reload();
+            }
+        });
+    }
 </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 package com.example.bookdahita.controller.client;
 
 import com.example.bookdahita.models.*;
+import com.example.bookdahita.repository.InventoryRepository;
 import com.example.bookdahita.service.CategoryService;
 import com.example.bookdahita.service.ProductService;
 import com.example.bookdahita.service.TransactionService;
@@ -12,7 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/client")
@@ -27,6 +30,9 @@ public class CatController {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private InventoryRepository inventoryRepository;
+
     @GetMapping("/category")
     public String category(@RequestParam("id") Long categoryId, @AuthenticationPrincipal CustomUserDetail userDetail, Model model) {
         // Lấy danh mục theo ID
@@ -38,11 +44,20 @@ public class CatController {
         // Lấy danh sách sản phẩm theo categoryId
         List<Product> products = productService.getProductsByCategoryId(categoryId);
 
+        // Lấy số lượng tồn kho cho các sản phẩm
+        Map<Long, Integer> productInventoryMap = new HashMap<>();
+        for (Product product : products) {
+            Inventory inventory = inventoryRepository.findByProduct(product)
+                    .orElse(Inventory.builder().quantity(0).build());
+            productInventoryMap.put(product.getId(), inventory.getQuantity());
+        }
+
         // Truyền dữ liệu vào Model
         model.addAttribute("category", category);
         model.addAttribute("products", products);
         model.addAttribute("listCategory", categoryService.getActiveCategoriesLimitedToTen());
         model.addAttribute("newProducts", productService.getNewActiveProductsLimitedToTen());
+        model.addAttribute("productInventoryMap", productInventoryMap);
 
         // Thêm totalUniqueQuantity
         if (userDetail != null) {

@@ -1,19 +1,28 @@
 package com.example.bookdahita.controller.client;
 
 import com.example.bookdahita.models.CustomUserDetail;
+import com.example.bookdahita.models.Inventory;
+import com.example.bookdahita.models.Order;
 import com.example.bookdahita.models.Transaction;
 import com.example.bookdahita.models.User;
 import com.example.bookdahita.repository.InboxRepository;
+import com.example.bookdahita.repository.InventoryRepository;
 import com.example.bookdahita.service.TransactionService;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/client")
@@ -26,6 +35,9 @@ public class CheckOutController {
 
     @Autowired
     private InboxRepository inboxRepository;
+
+    @Autowired
+    private InventoryRepository inventoryRepository;
 
     private boolean validateAndPrepareModel(Long transactionId, CustomUserDetail userDetail, Model model) {
         if (userDetail == null) {
@@ -45,6 +57,57 @@ public class CheckOutController {
             return false;
         }
         return true;
+    }
+
+    @PostMapping("/inventory/check")
+    public ResponseEntity<Map<String, Object>> checkInventory(
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @RequestParam("transactionId") Long transactionId
+    ) {
+        Map<String, Object> response = new HashMap<>();
+        if (userDetail == null) {
+            response.put("status", "error");
+            response.put("message", "Vui lòng đăng nhập để kiểm tra tồn kho");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+        try {
+            User user = userDetail.getUser();
+            Transaction transaction = transactionService.getTransactionById(transactionId);
+            if (transaction == null || transaction.getOrders() == null || transaction.getOrders().isEmpty()) {
+                response.put("status", "error");
+                response.put("message", "Giỏ hàng không tồn tại hoặc trống");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            if (!transaction.getUser().getId().equals(user.getId())) {
+                response.put("status", "error");
+                response.put("message", "Bạn không có quyền truy cập đơn hàng này");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
+            // Kiểm tra tồn kho cho từng sản phẩm trong giỏ hàng
+            for (Order order : transaction.getOrders()) {
+                if (order == null || order.getProduct() == null) continue;
+                Long productId = order.getProduct().getId();
+                int quantity = order.getQuantity();
+                Inventory inventory = inventoryRepository.findByProductId(productId)
+                        .orElse(Inventory.builder().quantity(0).build());
+                int inventoryQuantity = inventory.getQuantity();
+                if (quantity > inventoryQuantity) {
+                    response.put("status", "error");
+                    response.put("message", "Sản phẩm " + order.getProduct().getProname() + " chỉ còn " + inventoryQuantity + " trong kho.");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                }
+            }
+
+            response.put("status", "success");
+            response.put("message", "Tồn kho đủ để thanh toán");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error in checkInventory for transactionId: {}", transactionId, e);
+            response.put("status", "error");
+            response.put("message", "Lỗi khi kiểm tra tồn kho: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     @GetMapping("/checkouts")
@@ -75,21 +138,35 @@ public class CheckOutController {
                 model.addAttribute("transaction", null);
                 model.addAttribute("totalPrice", 0);
                 model.addAttribute("totalUniqueQuantity", 0);
-            } else {
-                int totalPrice = transaction.getOrders().stream()
-                        .filter(order -> order != null && order.getPrice() != null && order.getQuantity() != null)
-                        .mapToInt(order -> order.getPrice() * order.getQuantity())
-                        .sum();
-                int totalUniqueQuantity = (int) transaction.getOrders().stream()
-                        .filter(order -> order != null && order.getProduct() != null)
-                        .map(order -> order.getProduct().getId())
-                        .distinct()
-                        .count();
-                model.addAttribute("transaction", transaction);
-                model.addAttribute("totalPrice", totalPrice);
-                model.addAttribute("totalUniqueQuantity", totalUniqueQuantity);
-                logger.debug("Checkout loaded successfully for transactionId: {}", transactionId);
+                return "client/checkouts";
             }
+
+            // Kiểm tra tồn kho trước khi hiển thị trang thanh toán
+            for (Order order : transaction.getOrders()) {
+                if (order == null || order.getProduct() == null) continue;
+                Inventory inventory = inventoryRepository.findByProductId(order.getProduct().getId())
+                        .orElse(Inventory.builder().quantity(0).build());
+                if (order.getQuantity() > inventory.getQuantity()) {
+                    logger.warn("Insufficient inventory for product: {}, requested: {}, available: {}",
+                            order.getProduct().getProname(), order.getQuantity(), inventory.getQuantity());
+                    model.addAttribute("error", "Sản phẩm " + order.getProduct().getProname() + " chỉ còn " + inventory.getQuantity() + " trong kho.");
+                    return "client/cart";
+                }
+            }
+
+            int totalPrice = transaction.getOrders().stream()
+                    .filter(order -> order != null && order.getPrice() != null && order.getQuantity() != null)
+                    .mapToInt(order -> order.getPrice() * order.getQuantity())
+                    .sum();
+            int totalUniqueQuantity = (int) transaction.getOrders().stream()
+                    .filter(order -> order != null && order.getProduct() != null)
+                    .map(order -> order.getProduct().getId())
+                    .distinct()
+                    .count();
+            model.addAttribute("transaction", transaction);
+            model.addAttribute("totalPrice", totalPrice);
+            model.addAttribute("totalUniqueQuantity", totalUniqueQuantity);
+            logger.debug("Checkout loaded successfully for transactionId: {}", transactionId);
             return "client/checkouts";
         } catch (EntityNotFoundException e) {
             logger.error("EntityNotFoundException for transactionId: {}", transactionId, e);
@@ -152,11 +229,42 @@ public class CheckOutController {
                 model.addAttribute("totalUniqueQuantity", transaction.getOrders().size());
                 return "client/checkouts";
             }
+
+            // Kiểm tra tồn kho trước khi đặt hàng
+            for (Order order : transaction.getOrders()) {
+                if (order == null || order.getProduct() == null) continue;
+                Inventory inventory = inventoryRepository.findByProductId(order.getProduct().getId())
+                        .orElse(Inventory.builder().quantity(0).build());
+                if (order.getQuantity() > inventory.getQuantity()) {
+                    logger.warn("Insufficient inventory for product: {}, requested: {}, available: {}",
+                            order.getProduct().getProname(), order.getQuantity(), inventory.getQuantity());
+                    model.addAttribute("error", "Sản phẩm " + order.getProduct().getProname() + " chỉ còn " + inventory.getQuantity() + " trong kho.");
+                    return "client/checkouts";
+                }
+            }
+
+            // Giảm tồn kho với optimistic locking
+            for (Order order : transaction.getOrders()) {
+                if (order == null || order.getProduct() == null) continue;
+                Inventory inventory = inventoryRepository.findByProductId(order.getProduct().getId())
+                        .orElseThrow(() -> new IllegalStateException("Không tìm thấy tồn kho cho sản phẩm: " + order.getProduct().getProname()));
+                inventory.setQuantity(inventory.getQuantity() - order.getQuantity());
+                inventoryRepository.save(inventory); // Optimistic locking sẽ ném ObjectOptimisticLockingFailureException nếu xung đột
+            }
+
+            // Đặt hàng
             logger.info("Calling placeOrder for transactionId: {}, name: {}, phone: {}, address: {}, payment: {}",
                     transactionId, name, phone, finalAddress, paymentMethod);
             transactionService.placeOrder(transactionId, name, phone, finalAddress, paymentMethod);
             logger.info("Order placed successfully, redirecting to cart for transactionId: {}", transactionId);
             return "redirect:/client/cart";
+        } catch (ObjectOptimisticLockingFailureException e) {
+            logger.error("Optimistic locking failure during placeOrder for transactionId: {}", transactionId, e);
+            model.addAttribute("error", "Sản phẩm trong giỏ hàng đã được người khác đặt mua. Vui lòng kiểm tra lại giỏ hàng.");
+            model.addAttribute("transaction", null);
+            model.addAttribute("totalPrice", 0);
+            model.addAttribute("totalUniqueQuantity", 0);
+            return "client/checkouts";
         } catch (EntityNotFoundException e) {
             logger.error("EntityNotFoundException during placeOrder for transactionId: {}", transactionId, e);
             model.addAttribute("error", "Không tìm thấy đơn hàng: " + e.getMessage());

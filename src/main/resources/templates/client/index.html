@@ -38,24 +38,42 @@
                             <div class="large-12 columns">
                                 <div class="owl-carousel owl-theme owl-nav-style-1">
                                     <div class="item" th:each="product : ${categoryProductsMap.get(category)}">
-                                        <div class="product-item">
-                                            <div class="product-img" style="border: none;">
+                                        <div class="product-item" th:class="${productInventoryMap.get(product.id) == 0} ? 'product-item out-of-stock' : 'product-item'">
+                                            <div class="product-img" style="border: none; position: relative;">
+                                                <!-- Lớp phủ "Hết hàng" -->
+                                                <div class="out-of-stock-overlay" th:if="${productInventoryMap.get(product.id) == 0}">
+                                                    <span>Hết hàng</span>
+                                                </div>
                                                 <div class="product-sale" style="background: #f03737;" th:if="${product.prosale > 0}">
                                                     <span th:text="'-' + ${product.prosale} + '%'"></span>
                                                 </div>
-                                                <a th:href="@{/client/detail(id=${product.id})}"><img style="max-height: 240px;" th:src="@{'/resources/uploads/' + ${product.proimage} ?: 'default.jpg'}" alt=""></a>
-                                                <div class="button-add d-none d-md-flex">
-                                                    <button title="Thêm vào giỏ" data-tooltip="Thêm vào giỏ hàng" th:onclick="'addToCart(' + ${product.id} + ')'"><i class="fa-solid fa-cart-plus"></i></button>
+                                                <!-- Thay thế <a> bằng <span> khi hết hàng -->
+                                                <th:block th:if="${productInventoryMap.get(product.id) == 0}">
+                                                    <span><img style="max-height: 240px;" th:src="@{'/resources/uploads/' + ${product.proimage} ?: 'default.jpg'}" alt=""></span>
+                                                </th:block>
+                                                <th:block th:unless="${productInventoryMap.get(product.id) == 0}">
+                                                    <a th:href="@{/client/detail(id=${product.id})}"><img style="max-height: 240px;" th:src="@{'/resources/uploads/' + ${product.proimage} ?: 'default.jpg'}" alt=""></a>
+                                                </th:block>
+                                                <div class="button-add d-none d-md-flex" th:class="${productInventoryMap.get(product.id) == 0} ? 'd-none' : 'button-add d-none d-md-flex'">
+                                                    <button title="Thêm vào giỏ" data-tooltip="Thêm vào giỏ hàng" th:onclick="'addToCart(' + ${product.id} + ',' + ${productInventoryMap.get(product.id) ?: 0} + ')'"><i class="fa-solid fa-cart-plus"></i></button>
                                                     <a th:href="@{/client/detail(id=${product.id})}" data-tooltip="Chi tiết"><i class="fa-regular fa-eye"></i></a>
                                                 </div>
                                             </div>
                                             <div class="product-detail">
-                                                <h3 class="pro-name"><a th:href="@{/client/detail(id=${product.id})}" th:text="${product.proname}"></a></h3>
+                                                <!-- Thay thế <a> bằng <span> cho tên sản phẩm khi hết hàng -->
+                                                <h3 class="pro-name">
+                                                    <th:block th:if="${productInventoryMap.get(product.id) == 0}">
+                                                        <span th:text="${product.proname}"></span>
+                                                    </th:block>
+                                                    <th:block th:unless="${productInventoryMap.get(product.id) == 0}">
+                                                        <a th:href="@{/client/detail(id=${product.id})}" th:text="${product.proname}"></a>
+                                                    </th:block>
+                                                </h3>
                                                 <p class="pro-price">
                                                     <span class="current-price" th:text="${#numbers.formatInteger(product.proprice * (100 - product.prosale) / 100, 0, 'COMMA') + '₫'}"></span>
                                                     <del class="compare-price" th:if="${product.prosale > 0}" th:text="${#numbers.formatInteger(product.proprice, 0, 'COMMA') + '₫'}"></del>
                                                 </p>
-                                                <p class="pro-inventory" th:text="'Tồn kho: ' + ${productInventoryMap.get(product.id) ?: 0}"></p>
+                                                <p class="pro-inventory" th:if="${productInventoryMap.get(product.id) > 0}" th:text="'Tồn kho: ' + ${productInventoryMap.get(product.id) ?: 0}"></p>
                                             </div>
                                         </div>
                                     </div>
