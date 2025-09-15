@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<style>
+    table.table-cart tr td.item {
+        padding-left: 15px;
+    }
+    table.table-cart tr td.item p {
+        margin-bottom: 5px;
+    }
+    table.table-cart tr td.item .price {
+        color: #f6001a;
+        font-weight: 500;
+        font-size: 16px;
+    }
+    .price {
+        color: #f6001a;
+        font-weight: 500;
+        font-size: 16px;
+    }
+    table.table-cart tr td.item p .del {
+        display: block;
+    }
+    table.table-cart tr td.item p del {
+        font-size: 12px;
+    }
+    table.table-cart tr td.item p .sale {
+        background: #f00;
+        color: #fff;
+        font-size: 10px;
+        font-weight: bold;
+        border-radius: 3px;
+        padding: 1px 5px;
+    }
+
+    /* CSS mới cho cột item */
+    .datatable td.item {
+        padding: 12px 15px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .datatable td.item p {
+        margin: 0;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .datatable td.item .price {
+        color: #dc3545;
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+
+    .datatable td.item .del {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .datatable td.item .del del {
+        color: #6c757d;
+        font-size: 13px;
+        font-weight: normal;
+    }
+
+    .datatable td.item .del .sale {
+        background-color: #dc3545;
+        color: #fff;
+        font-size: 11px;
+        font-weight: bold;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .datatable td.item {
+            padding: 8px;
+        }
+
+        .datatable td.item .price {
+            font-size: 14px;
+        }
+
+        .datatable td.item .del del {
+            font-size: 12px;
+        }
+
+        .datatable td.item .del .sale {
+            font-size: 10px;
+            padding: 2px 6px;
+        }
+    }
+</style>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Danh sách tồn kho</h2>
+            <div class="block">
+                <table class="data display datatable" id="example">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Ảnh</th>
+                        <th>Giá nhập</th>
+                        <th>Giá bán</th>
+                        <th>Tồn kho</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="odd gradeX" th:each="inventory : ${inventories}">
+                        <td th:text="${inventory.product.id}"></td>
+                        <td th:text="${inventory.product.proname}"></td>
+                        <td>
+                            <img th:src="@{'/resources/uploads/' + ${inventory.product.proimage} ?: 'default.jpg'}" style="max-width: 100px;" alt="Ảnh sản phẩm">
+                        </td>
+                        <td th:text="${importPriceMap.get(inventory.product.id) != null ? #numbers.formatInteger(importPriceMap.get(inventory.product.id), 0, 'COMMA') + ' ₫' : 'Chưa có'}"></td>
+                        <td class="item">
+                            <p>
+                                <span th:if="${inventory.product.prosale > 0}">
+                                    <span class="price" th:text="${#numbers.formatInteger(inventory.product.proprice * (100 - inventory.product.prosale) / 100, 0, 'COMMA') + ' ₫'}"></span>
+                                    <span class="del">
+                                        <del th:text="${#numbers.formatInteger(inventory.product.proprice, 0, 'COMMA') + ' ₫'}"></del>
+                                        <span class="sale" th:text="'-' + ${inventory.product.prosale} + '%'"></span>
+                                    </span>
+                                </span>
+                                <span th:unless="${inventory.product.prosale > 0}">
+                                    <span class="price" th:text="${#numbers.formatInteger(inventory.product.proprice, 0, 'COMMA') + ' ₫'}"></span>
+                                </span>
+                            </p>
+                        </td>
+                        <td th:text="${inventory.quantity}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            setupLeftMenu();
+            $('.datatable').dataTable();
+            setSidebarHeight();
+        });
+    </script>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

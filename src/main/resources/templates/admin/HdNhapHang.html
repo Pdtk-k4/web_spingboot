@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<style>
+    table.table-cart tr td.item {
+        padding-left: 15px;
+    }
+    table.table-cart tr td.item p {
+        margin-bottom: 5px;
+    }
+    table.table-cart tr td.item .price {
+        color: #f6001a;
+        font-weight: 500;
+        font-size: 16px;
+    }
+    .price {
+        color: #f6001a;
+        font-weight: 500;
+        font-size: 16px;
+    }
+    table.table-cart tr td.item p .del {
+        display: block;
+    }
+    table.table-cart tr td.item p del {
+        font-size: 12px;
+    }
+    table.table-cart tr td.item p .sale {
+        background: #f00;
+        color: #fff;
+        font-size: 10px;
+        font-weight: bold;
+        border-radius: 3px;
+        padding: 1px 5px;
+    }
+
+    /* CSS mới cho cột item */
+    .datatable td.item {
+        padding: 12px 15px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .datatable td.item p {
+        margin: 0;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .datatable td.item .price {
+        color: #dc3545;
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+
+    .datatable td.item .del {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .datatable td.item .del del {
+        color: #6c757d;
+        font-size: 13px;
+        font-weight: normal;
+    }
+
+    .datatable td.item .del .sale {
+        background-color: #dc3545;
+        color: #fff;
+        font-size: 11px;
+        font-weight: bold;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    /* CSS cho cột thời gian */
+    .datatable td.time {
+        padding: 12px 15px;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 14px;
+        color: #333;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+
+    .datatable td.time span {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .datatable td.time span:last-child {
+        margin-bottom: 0;
+    }
+
+    /* CSS cho cột tên sản phẩm */
+    .datatable td.product-name {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 12px 15px;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .datatable td.item {
+            padding: 8px;
+        }
+
+        .datatable td.item .price {
+            font-size: 14px;
+        }
+
+        .datatable td.item .del del {
+            font-size: 12px;
+        }
+
+        .datatable td.item .del .sale {
+            font-size: 10px;
+            padding: 2px 6px;
+        }
+
+        .datatable td.time {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .datatable td.time span {
+            margin-bottom: 2px;
+        }
+
+        .datatable td.product-name {
+            max-width: 150px;
+            padding: 8px;
+            font-size: 13px;
+        }
+    }
+</style>
+<body>
+<div class="container_12">
+    <div th:replace="/admin/include/header :: header"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/header :: navbar"></div>
+    <div class="clear"></div>
+    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div class="grid_10">
+        <div class="box round first grid">
+            <h2>Tìm kiếm HĐ Nhập Hàng</h2>
+            <div class="block">
+                <table class="data display datatable" id="example">
+                    <thead>
+                    <tr>
+                        <th>Mã nhập</th>
+                        <th>Ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá nhập</th>
+                        <th>Số lượng</th>
+                        <th>Thành tiền</th>
+                        <th>Thời gian</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="odd gradeX" th:each="hdNhapHangChiTiet : ${hdNhapHangChiTiets}">
+                        <td th:text="${hdNhapHangChiTiet.hdNhapHang.id}"></td>
+                        <td>
+                            <img th:src="@{'/resources/uploads/' + ${hdNhapHangChiTiet.product.proimage} ?: 'default.jpg'}" style="max-width: 100px;" alt="Ảnh sản phẩm">
+                        </td>
+                        <td th:class="'product-name'" th:title="${hdNhapHangChiTiet.product.proname}" th:text="${hdNhapHangChiTiet.product.proname}"></td>
+                        <td th:class="'price'" th:text="${#numbers.formatInteger(hdNhapHangChiTiet.importPrice, 0, 'COMMA') + ' ₫'}"></td>
+                        <td th:text="${hdNhapHangChiTiet.quantity}"></td>
+                        <td th:class="'price'" th:text="${#numbers.formatInteger(hdNhapHangChiTiet.importPrice * hdNhapHangChiTiet.quantity, 0, 'COMMA') + ' ₫'}"></td>
+                        <td th:class="'time'">
+                            <span th:text="${#temporals.format(hdNhapHangChiTiet.hdNhapHang.createAt, 'HH:mm')}"></span>
+                            <span th:text="${#temporals.format(hdNhapHangChiTiet.hdNhapHang.createAt, 'dd/MM/yyyy')}"></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            setupLeftMenu();
+            $('.datatable').dataTable({
+                "pageLength": 10,
+                "lengthMenu": [5, 10, 25, 50],
+                "language": {
+                    "lengthMenu": "Hiển thị _MENU_ bản ghi mỗi trang",
+                    "zeroRecords": "Không tìm thấy dữ liệu",
+                    "info": "Hiển thị trang _PAGE_ của _PAGES_",
+                    "infoEmpty": "Không có bản ghi nào",
+                    "infoFiltered": "(lọc từ _MAX_ bản ghi)",
+                    "search": "Tìm kiếm:",
+                    "paginate": {
+                        "first": "Đầu",
+                        "last": "Cuối",
+                        "next": "Tiếp",
+                        "previous": "Trước"
+                    }
+                }
+            });
+            setSidebarHeight();
+        });
+    </script>
+    <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

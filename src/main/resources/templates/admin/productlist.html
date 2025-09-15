@@ -9,44 +9,57 @@
 	<div class="clear"></div>
 	<div th:replace="/admin/include/sidebar :: sidebar"></div>
 	<div class="grid_10">
-    	<div class="box round first grid">
-        	<h2>Danh sách sản phẩm</h2>
-			<a th:href="@{/admin/productadd}"><input style="margin-top: 10px;" class="form" type="submit" name="submit" Value="Thêm mới" /> </a>
-        	<div class="block">
-            	<table class="data display datatable" id="example">
+		<div class="box round first grid">
+			<h2>Danh sách sản phẩm</h2>
+			<!-- Hiển thị thông báo lỗi hoặc thành công -->
+			<div th:if="${error}" style="color: red; font-weight: bold; margin-bottom: 10px;">
+				<span th:text="${error}"></span>
+			</div>
+			<div th:if="${success}" style="color: green; font-weight: bold; margin-bottom: 10px;">
+				<span>Xóa sản phẩm thành công!</span>
+			</div>
+			<a th:href="@{/admin/productadd}"><input style="margin-top: 10px;" class="form" type="submit" name="submit" Value="Thêm mới" /></a>
+			<div class="block">
+				<table class="data display datatable" id="example">
 					<thead>
-						<tr>
-							<th>STT</th>
-							<th>ID</th>
-							<th>Tên sản phẩm</th>
-							<th>Danh mục</th>
-							<th>Nhà cung cấp</th>
-							<th>Tác giả</th>
-							<th>Ảnh</th>
-							<th>Giá thành</th>
-							<th>Tùy chỉnh</th>
-						</tr>
+					<tr>
+						<th>STT</th>
+						<th>ID</th>
+						<th>Tên sản phẩm</th>
+						<th>Danh mục</th>
+						<th>Nhà cung cấp</th>
+						<th>Tác giả</th>
+						<th>Ảnh</th>
+						<th>Giá thành</th>
+						<th>Tùy chỉnh</th>
+					</tr>
 					</thead>
 					<tbody>
-						<tr class="odd gradeX" th:each="product, count : ${products}">
-							<td th:text="${count.count}"></td>
-							<td th:text="${product.id}"></td>
-							<td th:text="${product.proname}"></td>
-							<td th:text="${product.category.catname}"></td>
-							<td th:text="${product.supplier.supname}"></td>
-							<td th:text="${product.author.auname}"></td>
-							<td><img th:src="@{'/resources/uploads/' + ${product.proimage}}" style="max-width: 100px;"  alt=""></td>
-							<td th:text="${product.proprice}"></td>
-							<td><a th:href="@{/admin/productedit/{id}(id=${product.id})}">Sửa</a> || <a th:href="@{/admin/productdel/{id}(id=${product.id})}" onclick="return confirm('Bạn có chắc muốn xóa?')" >Xóa</a></td>
-						</tr>
+					<tr class="odd gradeX" th:each="product, count : ${products}">
+						<td th:text="${count.count}"></td>
+						<td th:text="${product.id}"></td>
+						<td th:text="${product.proname}"></td>
+						<td th:text="${product.category?.catname ?: 'Chưa có danh mục'}"></td>
+						<td th:text="${product.supplier?.supname ?: 'Chưa có nhà cung cấp'}"></td>
+						<td th:text="${product.author?.auname ?: 'Chưa có tác giả'}"></td>
+						<td>
+							<img th:src="@{'/resources/uploads/' + ${product.proimage}}" style="max-width: 100px;" alt="Ảnh sản phẩm" th:if="${product.proimage}"/>
+							<span th:unless="${product.proimage}">Không có ảnh</span>
+						</td>
+						<td th:text="${product.proprice}"></td>
+						<td>
+							<a th:href="@{/admin/productedit/{id}(id=${product.id})}">Sửa</a> ||
+							<a th:href="@{/admin/productdel/{id}(id=${product.id})}" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</a>
+						</td>
+					</tr>
 					</tbody>
 				</table>
-       		</div>
-    	</div>
+			</div>
+		</div>
 	</div>
 
 	<script type="text/javascript">
-    	$(document).ready(function () {
+		$(document).ready(function () {
 			setupLeftMenu();
 			$('.datatable').dataTable();
 			setSidebarHeight();

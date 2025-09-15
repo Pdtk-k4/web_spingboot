@@ -1,8 +1,8 @@
 package com.example.bookdahita.controller.admin;
 
-import com.example.bookdahita.models.Category;
-import com.example.bookdahita.models.Product;
-import com.example.bookdahita.models.ProductsImages;
+import com.example.bookdahita.models.*;
+import com.example.bookdahita.repository.HDNhapHangChiTietRepository;
+import com.example.bookdahita.repository.InventoryRepository;
 import com.example.bookdahita.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Controller
 @RequestMapping("/admin")
@@ -35,6 +34,12 @@ public class ProductController {
 
     @Autowired
     private SupplierService supplierService;
+
+    @Autowired
+    private InventoryRepository inventoryRepository;
+
+    @Autowired
+    private HDNhapHangChiTietRepository hdNhapHangChiTietRepository;
 
     // Hàm tạo chuỗi ngẫu nhiên 8 ký tự
     private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -305,35 +310,35 @@ public class ProductController {
                 return "redirect:/admin/productlist";
             }
 
-            // Xóa ảnh bìa từ thư mục uploads
-            if (product.getProimage() != null && !product.getProimage().isEmpty()) {
-                storageService.delete(product.getProimage());
-                System.out.println("Đã xóa ảnh bìa: " + product.getProimage());
-            }
-
-            // Xóa ảnh chi tiết từ thư mục uploads và bảng ProductsImages
-            List<ProductsImages> productImages = productImageService.getAll().stream()
-                    .filter(img -> img.getProduct() != null && img.getProduct().getId().equals(id))
-                    .toList();
-            for (ProductsImages img : productImages) {
-                if (img.getPiimage() != null && !img.getPiimage().isEmpty()) {
-                    storageService.delete(img.getPiimage());
-                    System.out.println("Đã xóa ảnh chi tiết: " + img.getPiimage());
-                }
-            }
-            productImageService.deleteByProductId(id);
-            System.out.println("Đã xóa bản ghi ảnh chi tiết cho product ID: " + id);
-
             // Xóa sản phẩm
             if (productService.delete(id)) {
+                // Chỉ xóa ảnh bìa và ảnh chi tiết khi sản phẩm được xóa thành công
+                if (product.getProimage() != null && !product.getProimage().isEmpty()) {
+                    storageService.delete(product.getProimage());
+                    System.out.println("Đã xóa ảnh bìa: " + product.getProimage());
+                }
+
+                // Xóa ảnh chi tiết từ thư mục uploads và bảng ProductsImages
+                List<ProductsImages> productImages = productImageService.getAll().stream()
+                        .filter(img -> img.getProduct() != null && img.getProduct().getId().equals(id))
+                        .toList();
+                for (ProductsImages img : productImages) {
+                    if (img.getPiimage() != null && !img.getPiimage().isEmpty()) {
+                        storageService.delete(img.getPiimage());
+                        System.out.println("Đã xóa ảnh chi tiết: " + img.getPiimage());
+                    }
+                }
+                productImageService.deleteByProductId(id);
+                System.out.println("Đã xóa bản ghi ảnh chi tiết cho product ID: " + id);
+
                 redirectAttributes.addFlashAttribute("success", true);
                 System.out.println("Đã xóa sản phẩm ID: " + id);
             } else {
-                redirectAttributes.addFlashAttribute("error", "Xóa sản phẩm thất bại");
+                redirectAttributes.addFlashAttribute("error", "Không thể xóa sản phẩm");
                 System.out.println("Không thể xóa sản phẩm ID: " + id);
             }
         } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Lỗi khi xóa sản phẩm: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Không thể xóa sản phẩm: " + e.getMessage());
             System.out.println("Lỗi khi xóa sản phẩm ID: " + id + ", thông báo: " + e.getMessage());
         }
         return "redirect:/admin/productlist";
@@ -351,5 +356,19 @@ public class ProductController {
         List<Product> newBooks = productService.getNewBooks();
         model.addAttribute("newBooks", newBooks);
         return "admin/proNewBook";
+    }
+
+    @GetMapping("/tonkho")
+    public String tonkho(Model model) {
+        List<Inventory> inventories = inventoryRepository.findAll();
+        Map<Long, Integer> importPriceMap = new HashMap<>();
+        for (Inventory inventory : inventories) {
+            Long productId = inventory.getProduct().getId();
+            Optional<HDNhapHangChiTiet> latestImport = hdNhapHangChiTietRepository.findTopByProductIdOrderByIdDesc(productId);
+            importPriceMap.put(productId, latestImport.map(HDNhapHangChiTiet::getImportPrice).orElse(0));
+        }
+        model.addAttribute("inventories", inventories);
+        model.addAttribute("importPriceMap", importPriceMap);
+        return "admin/tonkho";
     }
 }

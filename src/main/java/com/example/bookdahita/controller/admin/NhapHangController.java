@@ -335,4 +335,11 @@ public class NhapHangController {
         response.put("total", products.size());
         return response;
     }
+
+    @GetMapping("/HdNhapHang")
+    public String tonkho(Model model) {
+        List<HDNhapHangChiTiet> hdNhapHangChiTiets = hdNhapHangChiTietRepository.findAll();
+        model.addAttribute("hdNhapHangChiTiets", hdNhapHangChiTiets);
+        return "admin/HdNhapHang";
+    }
 }
