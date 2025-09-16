@@ -4,6 +4,8 @@ import com.example.bookdahita.models.*;
 import com.example.bookdahita.repository.HDNhapHangChiTietRepository;
 import com.example.bookdahita.repository.InventoryRepository;
 import com.example.bookdahita.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +18,8 @@ import java.util.*;
 @Controller
 @RequestMapping("/admin")
 public class ProductController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
     private StorageService storageService;
@@ -86,14 +90,21 @@ public class ProductController {
                 throw new IllegalArgumentException("Ảnh bìa không được để trống");
             }
             String originalFileName = fileImage.getOriginalFilename();
-            if (originalFileName == null || originalFileName.trim().isEmpty()) {
+            if (originalFileName == null || originalFileName.trim().isEmpty() || !originalFileName.contains(".")) {
                 throw new IllegalArgumentException("Tên file ảnh bìa không hợp lệ");
             }
             String extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
             String fileName = generateShortRandomString() + extension;
             storageService.store(fileImage, fileName);
             product.setProimage(fileName);
-            System.out.println("Lưu ảnh bìa: " + fileName);
+            logger.info("Lưu ảnh bìa: {}", fileName);
+
+            // Kiểm tra các thực thể liên quan
+            if (product.getCategory() == null || product.getCategory().getId() == null ||
+                    product.getAuthor() == null || product.getAuthor().getId() == null ||
+                    product.getSupplier() == null || product.getSupplier().getId() == null) {
+                throw new IllegalArgumentException("Danh mục, tác giả hoặc nhà cung cấp không hợp lệ");
+            }
 
             // Lưu sản phẩm
             if (!productService.create(product)) {
@@ -105,7 +116,7 @@ public class ProductController {
                 for (MultipartFile file : proGallery) {
                     if (!file.isEmpty()) {
                         originalFileName = file.getOriginalFilename();
-                        if (originalFileName == null || originalFileName.trim().isEmpty()) {
+                        if (originalFileName == null || originalFileName.trim().isEmpty() || !originalFileName.contains(".")) {
                             throw new IllegalArgumentException("Tên file ảnh chi tiết không hợp lệ");
                         }
                         extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
@@ -117,7 +128,7 @@ public class ProductController {
                         productImage.setPiimage(fileName);
                         productImage.setProduct(product);
                         productImageService.create(productImage);
-                        System.out.println("Lưu ảnh chi tiết: " + fileName);
+                        logger.info("Lưu ảnh chi tiết: {}", fileName);
                     }
                 }
             }
@@ -125,6 +136,7 @@ public class ProductController {
             redirectAttributes.addFlashAttribute("success", true);
             return "redirect:/admin/productadd";
         } catch (IllegalArgumentException e) {
+            logger.error("Lỗi dữ liệu khi thêm sản phẩm: {}", e.getMessage());
             model.addAttribute("error", "Lỗi dữ liệu: " + e.getMessage());
             model.addAttribute("product", product);
             model.addAttribute("listCategory", categoryService.getAll());
@@ -132,6 +144,7 @@ public class ProductController {
             model.addAttribute("listSupplier", supplierService.getAll());
             return "admin/productadd";
         } catch (RuntimeException e) {
+            logger.error("Lỗi khi lưu sản phẩm hoặc tệp: {}", e.getMessage());
             model.addAttribute("error", "Lỗi khi lưu sản phẩm hoặc tệp: " + e.getMessage());
             model.addAttribute("product", product);
             model.addAttribute("listCategory", categoryService.getAll());
@@ -145,12 +158,12 @@ public class ProductController {
     public String productedit(@PathVariable("id") Long id, Model model) {
         Product product = productService.findById(id);
         if (product == null) {
+            logger.error("Sản phẩm không tồn tại với ID: {}", id);
             model.addAttribute("error", "Sản phẩm không tồn tại");
             return "redirect:/admin/productlist";
         }
-        System.out.println("Product ID: " + id);
-        System.out.println("pronewbook: " + product.getPronewbook());
-        System.out.println("prostatus: " + product.getProstatus());
+        logger.info("Hiển thị form chỉnh sửa sản phẩm ID: {}, pronewbook: {}, prostatus: {}",
+                id, product.getPronewbook(), product.getProstatus());
         model.addAttribute("product", product);
         model.addAttribute("listCategory", categoryService.getAll());
         model.addAttribute("listAuthor", authorService.getAll());
@@ -169,6 +182,7 @@ public class ProductController {
             // Tìm sản phẩm hiện tại
             Product existingProduct = productService.findById(id);
             if (existingProduct == null) {
+                logger.error("Sản phẩm không tồn tại với ID: {}", id);
                 redirectAttributes.addFlashAttribute("error", "Sản phẩm không tồn tại");
                 return "redirect:/admin/productlist";
             }
@@ -177,58 +191,52 @@ public class ProductController {
             product.setId(id);
 
             // Gán giá trị mặc định nếu null
-            if (product.getPronewbook() == null) {
-                product.setPronewbook(false);
-                System.out.println("Set pronewbook to false");
-            } else {
-                System.out.println("Set pronewbook to: " + product.getPronewbook());
-            }
-            if (product.getProstatus() == null) {
-                product.setProstatus(false);
-                System.out.println("Set prostatus to false");
-            } else {
-                System.out.println("Set prostatus to: " + product.getProstatus());
-            }
-            if (product.getProprice() == null) {
-                product.setProprice(0);
-                System.out.println("Set proprice to 0");
-            } else {
-                System.out.println("Set proprice to: " + product.getProprice());
-            }
-            if (product.getProsale() == null) {
-                product.setProsale(0);
-                System.out.println("Set prosale to 0");
-            } else {
-                System.out.println("Set prosale to: " + product.getProsale());
+            product.setPronewbook(product.getPronewbook() != null ? product.getPronewbook() : false);
+            logger.info("Set pronewbook to: {}", product.getPronewbook());
+            product.setProstatus(product.getProstatus() != null ? product.getProstatus() : false);
+            logger.info("Set prostatus to: {}", product.getProstatus());
+            product.setProprice(product.getProprice() != null ? product.getProprice() : 0);
+            logger.info("Set proprice to: {}", product.getProprice());
+            product.setProsale(product.getProsale() != null ? product.getProsale() : 0);
+            logger.info("Set prosale to: {}", product.getProsale());
+
+            // Kiểm tra các thực thể liên quan
+            if (product.getCategory() == null || product.getCategory().getId() == null ||
+                    product.getAuthor() == null || product.getAuthor().getId() == null ||
+                    product.getSupplier() == null || product.getSupplier().getId() == null) {
+                throw new IllegalArgumentException("Danh mục, tác giả hoặc nhà cung cấp không hợp lệ");
             }
 
             // Xử lý ảnh bìa
             if (fileImage != null && !fileImage.isEmpty()) {
                 // Xóa ảnh bìa cũ nếu tồn tại
                 if (existingProduct.getProimage() != null && !existingProduct.getProimage().isEmpty()) {
-                    storageService.delete(existingProduct.getProimage());
-                    System.out.println("Đã xóa ảnh bìa cũ: " + existingProduct.getProimage());
+                    try {
+                        storageService.delete(existingProduct.getProimage());
+                        logger.info("Đã xóa ảnh bìa cũ: {}", existingProduct.getProimage());
+                    } catch (Exception e) {
+                        logger.warn("Không thể xóa ảnh bìa cũ: {}. Tiếp tục xử lý.", e.getMessage());
+                    }
                 }
                 // Lưu ảnh bìa mới
                 String originalFileName = fileImage.getOriginalFilename();
-                if (originalFileName == null || originalFileName.trim().isEmpty()) {
+                if (originalFileName == null || originalFileName.trim().isEmpty() || !originalFileName.contains(".")) {
                     throw new IllegalArgumentException("Tên file ảnh bìa không hợp lệ");
                 }
                 String extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
                 String fileName = generateShortRandomString() + extension;
                 storageService.store(fileImage, fileName);
                 product.setProimage(fileName);
-                System.out.println("Set proimage to: " + fileName);
+                logger.info("Set proimage to: {}", fileName);
             } else {
                 // Giữ ảnh bìa hiện tại nếu không upload ảnh mới
                 product.setProimage(existingProduct.getProimage());
-                System.out.println("Kept existing proimage: " + existingProduct.getProimage());
+                logger.info("Kept existing proimage: {}", existingProduct.getProimage());
             }
 
             // Xử lý ảnh chi tiết
             boolean hasNewGalleryImages = false;
             if (proGallery != null && proGallery.length > 0) {
-                // Kiểm tra xem có ít nhất một file hợp lệ trong proGallery
                 for (MultipartFile file : proGallery) {
                     if (!file.isEmpty()) {
                         hasNewGalleryImages = true;
@@ -243,19 +251,23 @@ public class ProductController {
                         .filter(img -> img.getProduct() != null && img.getProduct().getId().equals(id))
                         .toList();
                 for (ProductsImages img : existingImages) {
-                    if (img.getPiimage() != null) {
-                        storageService.delete(img.getPiimage());
-                        System.out.println("Đã xóa ảnh chi tiết cũ: " + img.getPiimage());
+                    if (img.getPiimage() != null && !img.getPiimage().isEmpty()) {
+                        try {
+                            storageService.delete(img.getPiimage());
+                            logger.info("Đã xóa ảnh chi tiết cũ: {}", img.getPiimage());
+                        } catch (Exception e) {
+                            logger.warn("Không thể xóa ảnh chi tiết cũ: {}. Tiếp tục xử lý.", e.getMessage());
+                        }
                     }
                 }
                 productImageService.deleteByProductId(id);
-                System.out.println("Đã xóa bản ghi ảnh chi tiết cũ cho product ID: " + id);
+                logger.info("Đã xóa bản ghi ảnh chi tiết cũ cho product ID: {}", id);
 
                 // Lưu ảnh chi tiết mới
                 for (MultipartFile file : proGallery) {
                     if (!file.isEmpty()) {
                         String originalFileName = file.getOriginalFilename();
-                        if (originalFileName == null || originalFileName.trim().isEmpty()) {
+                        if (originalFileName == null || originalFileName.trim().isEmpty() || !originalFileName.contains(".")) {
                             throw new IllegalArgumentException("Tên file ảnh chi tiết không hợp lệ");
                         }
                         String extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
@@ -266,17 +278,19 @@ public class ProductController {
                         productImage.setPiimage(fileName);
                         productImage.setProduct(product);
                         productImageService.create(productImage);
-                        System.out.println("Saved product image (gallery): " + fileName);
+                        logger.info("Saved product image (gallery): {}", fileName);
                     }
                 }
             }
 
             // Cập nhật sản phẩm
             if (productService.update(product)) {
+                logger.info("Cập nhật sản phẩm thành công: ID {}", id);
                 redirectAttributes.addFlashAttribute("success", true);
                 return "redirect:/admin/productlist";
             } else {
-                model.addAttribute("error", "Cập nhật sản phẩm thất bại!");
+                logger.error("Cập nhật sản phẩm thất bại: ID {}", id);
+                model.addAttribute("error", "Cập nhật sản phẩm thất bại! Vui lòng kiểm tra dữ liệu và thử lại.");
                 model.addAttribute("product", product);
                 model.addAttribute("listCategory", categoryService.getAll());
                 model.addAttribute("listAuthor", authorService.getAll());
@@ -284,14 +298,16 @@ public class ProductController {
                 return "admin/productedit";
             }
         } catch (IllegalArgumentException e) {
+            logger.error("Lỗi dữ liệu khi cập nhật sản phẩm ID {}: {}", id, e.getMessage());
             model.addAttribute("error", "Lỗi dữ liệu: " + e.getMessage());
             model.addAttribute("product", product);
             model.addAttribute("listCategory", categoryService.getAll());
             model.addAttribute("listAuthor", authorService.getAll());
             model.addAttribute("listSupplier", supplierService.getAll());
             return "admin/productedit";
-        } catch (RuntimeException e) {
-            model.addAttribute("error", "Lỗi khi lưu tệp hoặc sản phẩm: " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Lỗi không xác định khi cập nhật sản phẩm ID {}: {}", id, e.getMessage(), e);
+            model.addAttribute("error", "Lỗi khi lưu sản phẩm hoặc tệp: " + e.getMessage());
             model.addAttribute("product", product);
             model.addAttribute("listCategory", categoryService.getAll());
             model.addAttribute("listAuthor", authorService.getAll());
@@ -306,6 +322,7 @@ public class ProductController {
             // Kiểm tra sản phẩm tồn tại
             Product product = productService.findById(id);
             if (product == null) {
+                logger.error("Sản phẩm không tồn tại với ID: {}", id);
                 redirectAttributes.addFlashAttribute("error", "Sản phẩm không tồn tại");
                 return "redirect:/admin/productlist";
             }
@@ -314,8 +331,12 @@ public class ProductController {
             if (productService.delete(id)) {
                 // Chỉ xóa ảnh bìa và ảnh chi tiết khi sản phẩm được xóa thành công
                 if (product.getProimage() != null && !product.getProimage().isEmpty()) {
-                    storageService.delete(product.getProimage());
-                    System.out.println("Đã xóa ảnh bìa: " + product.getProimage());
+                    try {
+                        storageService.delete(product.getProimage());
+                        logger.info("Đã xóa ảnh bìa: {}", product.getProimage());
+                    } catch (Exception e) {
+                        logger.warn("Không thể xóa ảnh bìa: {}. Tiếp tục xử lý.", e.getMessage());
+                    }
                 }
 
                 // Xóa ảnh chi tiết từ thư mục uploads và bảng ProductsImages
@@ -324,22 +345,26 @@ public class ProductController {
                         .toList();
                 for (ProductsImages img : productImages) {
                     if (img.getPiimage() != null && !img.getPiimage().isEmpty()) {
-                        storageService.delete(img.getPiimage());
-                        System.out.println("Đã xóa ảnh chi tiết: " + img.getPiimage());
+                        try {
+                            storageService.delete(img.getPiimage());
+                            logger.info("Đã xóa ảnh chi tiết: {}", img.getPiimage());
+                        } catch (Exception e) {
+                            logger.warn("Không thể xóa ảnh chi tiết: {}. Tiếp tục xử lý.", e.getMessage());
+                        }
                     }
                 }
                 productImageService.deleteByProductId(id);
-                System.out.println("Đã xóa bản ghi ảnh chi tiết cho product ID: " + id);
+                logger.info("Đã xóa bản ghi ảnh chi tiết cho product ID: {}", id);
 
                 redirectAttributes.addFlashAttribute("success", true);
-                System.out.println("Đã xóa sản phẩm ID: " + id);
+                logger.info("Đã xóa sản phẩm ID: {}", id);
             } else {
+                logger.error("Không thể xóa sản phẩm ID: {}", id);
                 redirectAttributes.addFlashAttribute("error", "Không thể xóa sản phẩm");
-                System.out.println("Không thể xóa sản phẩm ID: " + id);
             }
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
+            logger.error("Lỗi khi xóa sản phẩm ID {}: {}", id, e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Không thể xóa sản phẩm: " + e.getMessage());
-            System.out.println("Lỗi khi xóa sản phẩm ID: " + id + ", thông báo: " + e.getMessage());
         }
         return "redirect:/admin/productlist";
     }

@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="/admin/include/head :: head">
+<head th:replace="~{/admin/include/head :: head}">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
 </head>
 <body>
 <div class="container_12">
-    <div th:replace="/admin/include/header :: header"></div>
+    <div th:replace="~{/admin/include/header :: header}"></div>
     <div class="clear"></div>
-    <div th:replace="/admin/include/header :: navbar"></div>
+    <div th:replace="~{/admin/include/header :: navbar}"></div>
     <div class="clear"></div>
-    <div th:replace="/admin/include/sidebar :: sidebar"></div>
+    <div th:replace="~{/admin/include/sidebar :: sidebar}"></div>
     <div class="grid_10">
         <div class="box round first grid">
             <h2>Chỉnh sửa sản phẩm</h2>
@@ -21,17 +21,17 @@
                     <div th:if="${success}" class="success-message" id="successMessage">
                         <span>Cập nhật thành công</span>
                     </div>
-                    <div th:if="${error != null}" class="error" th:text="${error}"></div>
+                    <div th:if="${error != null}" class="error-message" th:text="${error}"></div>
                     <table class="form">
                         <tr>
-                            <td><label>Tên sản phẩm</label></td>
+                            <td><label for="proname">Tên sản phẩm</label></td>
                             <td>
-                                <input type="text" th:field="*{proname}" placeholder="Nhập tên sản phẩm..." class="medium" required id="proname"/>
+                                <input type="text" th:field="*{proname}" id="proname" placeholder="Nhập tên sản phẩm..." class="medium" required/>
                                 <span th:errors="*{proname}" class="error"></span>
                             </td>
                         </tr>
                         <tr>
-                            <td><label>Tác giả</label></td>
+                            <td><label for="authorSelect">Tác giả</label></td>
                             <td>
                                 <select id="authorSelect" th:field="*{author.id}" required>
                                     <option value="">Chọn tác giả</option>
@@ -41,9 +41,9 @@
                             </td>
                         </tr>
                         <tr>
-                            <td><label>Danh mục</label></td>
+                            <td><label for="categorySelect">Danh mục</label></td>
                             <td>
-                                <select th:field="*{category.id}" required id="categorySelect">
+                                <select id="categorySelect" th:field="*{category.id}" required>
                                     <option value="">Chọn danh mục</option>
                                     <option th:each="category : ${listCategory}" th:value="${category.id}" th:text="${category.catname}" th:selected="${category.id == product.category.id}"></option>
                                 </select>
@@ -51,9 +51,9 @@
                             </td>
                         </tr>
                         <tr>
-                            <td><label>Nhà cung cấp</label></td>
+                            <td><label for="supplierSelect">Nhà cung cấp</label></td>
                             <td>
-                                <select th:field="*{supplier.id}" required id="supplierSelect">
+                                <select id="supplierSelect" th:field="*{supplier.id}" required>
                                     <option value="">Chọn nhà cung cấp</option>
                                     <option th:each="supplier : ${listSupplier}" th:value="${supplier.id}" th:text="${supplier.supname}" th:selected="${supplier.id == product.supplier.id}"></option>
                                 </select>
@@ -61,28 +61,28 @@
                             </td>
                         </tr>
                         <tr>
-                            <td style="vertical-align: top; padding-top: 9px;"><label>Nội dung</label></td>
+                            <td style="vertical-align: top; padding-top: 9px;"><label for="procontent">Nội dung</label></td>
                             <td>
-                                <textarea th:field="*{procontent}" class="tinymce" id="procontent"></textarea>
+                                <textarea th:field="*{procontent}" id="procontent" class="tinymce"></textarea>
                                 <span th:errors="*{procontent}" class="error"></span>
                             </td>
                         </tr>
                         <tr>
-                            <td><label>Giá sản phẩm</label></td>
+                            <td><label for="proprice">Giá sản phẩm</label></td>
                             <td>
-                                <input th:field="*{proprice}" type="number" placeholder="0" class="width" required min="0" id="proprice"/>
+                                <input type="number" th:field="*{proprice}" id="proprice" placeholder="0" class="width" required min="0"/>
                                 <span th:errors="*{proprice}" class="error"></span>
                             </td>
                         </tr>
                         <tr>
                             <td><label>Loại sản phẩm</label></td>
                             <td>
-                                <input type="checkbox" th:field="*{pronewbook}" th:checked="${product.pronewbook}" id="pronewbook">
+                                <input type="checkbox" th:field="*{pronewbook}" id="pronewbook" th:checked="${product.pronewbook}"/>
                                 <label for="pronewbook" style="margin-right: 20px;">Sách mới</label>
-                                <input type="checkbox" th:field="*{prostatus}" th:checked="${product.prostatus}" id="prostatus">
+                                <input type="checkbox" th:field="*{prostatus}" id="prostatus" th:checked="${product.prostatus}"/>
                                 <label for="prostatus" style="margin-right: 20px;">Nổi bật</label>
-                                <label style="margin-right: 5px;">Sale</label>
-                                <input type="number" th:field="*{prosale}" placeholder="0" class="width" min="0" id="prosale"/>
+                                <label for="prosale" style="margin-right: 5px;">Sale (%)</label>
+                                <input type="number" th:field="*{prosale}" id="prosale" placeholder="0" class="width" min="0"/>
                                 <span th:errors="*{prosale}" class="error"></span>
                             </td>
                         </tr>
@@ -90,8 +90,8 @@
                             <td><label>Ảnh bìa hiện tại</label></td>
                             <td>
                                 <img th:if="${product.proimage != null}" th:src="@{'/resources/uploads/' + ${product.proimage}}" alt="Ảnh bìa hiện tại" class="current-cover" style="max-width: 200px;"/>
-                                <input id="coverInput" name="fileImage" type="file" accept="image/*">
-                                <img id="previewCover" src="" alt="Preview ảnh bìa" style="max-width: 200px; display: none;">
+                                <input id="coverInput" name="fileImage" type="file" accept="image/*"/>
+                                <img id="previewCover" src="" alt="Preview ảnh bìa" style="max-width: 200px; display: none;"/>
                             </td>
                         </tr>
                         <tr>
@@ -100,7 +100,7 @@
                                 <div id="currentGallery" style="display: flex; gap: 10px;">
                                     <img th:each="image : ${product.productsImages}" th:src="@{'/resources/uploads/' + ${image.piimage}}" style="max-width: 100px;" alt="Ảnh chi tiết"/>
                                 </div>
-                                <input id="galleryInput" name="proGallery" type="file" multiple accept="image/*">
+                                <input id="galleryInput" name="proGallery" type="file" multiple accept="image/*"/>
                                 <div id="previewGallery" style="display: flex; gap: 10px;"></div>
                             </td>
                         </tr>
@@ -130,10 +130,10 @@
             const form = document.getElementById("productForm");
             const fields = [
                 "proname", "authorSelect", "categorySelect", "supplierSelect",
-                "procontent", "proprice", "prosale" // Loại bỏ pronewbook, prostatus khỏi LocalStorage
+                "procontent", "proprice", "prosale"
             ];
 
-            // Khôi phục dữ liệu từ LocalStorage (trừ pronewbook và prostatus)
+            // Khôi phục dữ liệu từ LocalStorage
             const savedData = JSON.parse(localStorage.getItem("productFormData")) || {};
             fields.forEach(field => {
                 const element = document.getElementById(field);
@@ -205,13 +205,20 @@
 
             // Xóa dữ liệu khi submit thành công
             form.addEventListener("submit", function(event) {
-                localStorage.removeItem("productFormData");
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    form.classList.add("was-validated");
+                } else {
+                    localStorage.removeItem("productFormData");
+                }
             });
 
             // Xóa dữ liệu khi nhấn nút "Xóa dữ liệu"
             document.getElementById("clearForm").addEventListener("click", function() {
                 localStorage.removeItem("productFormData");
                 form.reset();
+                form.classList.remove("was-validated");
                 if (typeof tinymce !== "undefined") {
                     tinymce.get("procontent").setContent("");
                 }
@@ -256,13 +263,31 @@
             border: 1px solid #d6e9c6;
             border-radius: 4px;
         }
+        .error-message {
+            background-color: #f2dede;
+            color: #a94442;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ebccd1;
+            border-radius: 4px;
+        }
         .error {
-            color: red;
+            color: #a94442;
+            font-size: 0.9em;
+        }
+        .form .width {
+            width: 100px;
+        }
+        .form .medium {
+            width: 300px;
+        }
+        .form.was-validated .error {
+            display: block;
         }
     </style>
     <div class="clear"></div>
 </div>
 <div class="clear"></div>
-<div th:replace="/admin/include/footer :: footer"></div>
+<div th:replace="~{/admin/include/footer :: footer}"></div>
 </body>
 </html>

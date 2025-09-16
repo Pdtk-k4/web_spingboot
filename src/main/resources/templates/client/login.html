@@ -41,6 +41,7 @@
                                 <a href="#" id="dynamic-image-gg-sign-in" class="social"><img th:src="@{/resources/images/frontend/ic_google_dark.png}" alt=""></a>
                             </div>
                             <span th:text="#{auth.login.account}">hoặc sử dụng tài khoản của bạn</span>
+                            <div th:if="${error != null}" class="error-message" th:text="${error}"></div>
                             <div class="infield">
                                 <input type="email" id="username" name="username" required th:placeholder="#{auth.login.email}">
                             </div>

@@ -6,4 +6,5 @@ public interface UserService {
     User findByUserName(String userName);
     void registerNewUser(User user) throws Exception;
     void updateUser(User user) throws Exception;
+    boolean authenticate(String email, String password); // Thêm phương thức authenticate
 }
