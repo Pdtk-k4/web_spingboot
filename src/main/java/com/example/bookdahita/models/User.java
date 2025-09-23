@@ -1,6 +1,7 @@
 package com.example.bookdahita.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -17,12 +18,17 @@ public class User {
     @Column(name = "username")
     private String userName;
 
+    @NotBlank(message = "Mật khẩu không được để trống")
+    @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
     @Column(name = "pass")
     private String pass;
 
+    @NotBlank(message = "Họ tên không được để trống")
     @Column(name = "fullname")
     private String fullName;
 
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Email không hợp lệ")
     @Column(name = "email")
     private String email;
 

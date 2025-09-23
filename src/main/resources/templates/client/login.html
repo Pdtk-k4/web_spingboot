@@ -7,8 +7,11 @@
     <section class="content">
         <div class="container">
             <div class="form-account mb-30 mt-30">
-                <div class="container-account" id="container-account" >
-                    <div class="form-container sign-up-container">
+                <div class="container-account"
+                     id="container-account"
+                     th:classappend="${tab == 'register'} ? ' right-panel-active' : ''">
+
+                <div class="form-container sign-up-container">
                         <form th:action="@{/client/register}" th:object="${user}" method="post">
                             <h1 th:text="#{auth.register.title}">Đăng Ký</h1>
                             <div class="social-container">
@@ -16,16 +19,19 @@
                                 <a href="#" id="dynamic-image-gg-sign-up" class="social"><img th:src="@{/resources/images/frontend/ic_google_dark.png}" alt=""></a>
                             </div>
                             <span th:text="#{auth.register.email}">hoặc sử dụng email của bạn để đăng ký</span>
+                            <div th:if="${registerError != null}" class="error-message-register" th:text="${registerError}"></div>
                             <div class="infield">
                                 <input type="text" id="fullName" th:field="*{fullName}" required th:placeholder="#{auth.register.fullname}">
+                                <div class="error-message-register" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
                             </div>
                             <div class="infield">
                                 <input type="email" id="email" th:field="*{email}" required th:placeholder="#{auth.register.email.placeholder}">
+                                <div class="error-message-register" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
                             </div>
                             <div class="infield">
                                 <input type="password" id="signup-password" th:field="*{pass}" required th:placeholder="#{auth.register.password}">
+                                <div class="error-message-register" th:if="${#fields.hasErrors('pass')}" th:errors="*{pass}"></div>
                             </div>
-                            <div class="error-message"></div>
 
                             <button class="button" type="submit" name="submit" th:text="#{auth.register.button}" >Đăng Ký</button>
                         </form>
@@ -34,26 +40,33 @@
 
 
                     <div class="form-container sign-in-container">
-                        <form action="" method="POST">
+                        <form th:action="@{/client/login}" method="POST">
                             <h1 th:text="#{auth.login.title}">Đăng Nhập</h1>
                             <div class="social-container">
                                 <a href="#" style="font-size: 18px;" class="social facebook"><i class="fab fa-facebook-f"></i></a>
                                 <a href="#" id="dynamic-image-gg-sign-in" class="social"><img th:src="@{/resources/images/frontend/ic_google_dark.png}" alt=""></a>
                             </div>
                             <span th:text="#{auth.login.account}">hoặc sử dụng tài khoản của bạn</span>
-                            <div th:if="${error != null}" class="error-message" th:text="${error}"></div>
+
+                            <!-- Hiển thị lỗi -->
+                            <div th:if="${loginError != null}" class="error-message" th:text="${loginError}"></div>
+
+                            <!-- Hiển thị thông báo thành công -->
+                            <div th:if="${success}" class="success-message" th:text="${success}"></div>
+
                             <div class="infield">
                                 <input type="email" id="username" name="username" required th:placeholder="#{auth.login.email}">
                             </div>
                             <div class="infield">
                                 <input type="password" id="signin-password" name="password" required th:placeholder="#{auth.login.password}">
                             </div>
-                            <div class="error-message"></div>
 
                             <a href="#" class="forgot" th:text="#{auth.login.forgot}">Quên mật khẩu?</a>
                             <button class="button" type="submit" name="login" th:text="#{auth.login.button}">Đăng Nhập</button>
                         </form>
                     </div>
+
+
                     <div class="overlay-container" id="overlayCon">
                         <div class="overlay">
                             <div class="overlay-panel overlay-left">

@@ -162,16 +162,6 @@
       const container = document.getElementById('container-account');
       const overlayBtn = document.getElementById('overlayBtn');
 
-      // Lấy giá trị của tham số "tab" trên URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const tab = urlParams.get('tab');
-
-      // Nếu tab là "register", kích hoạt giao diện đăng ký
-      if (tab === 'register' && container) {
-        container.classList.add('right-panel-active');
-      }
-
-      // Xử lý sự kiện khi nhấn vào nút chuyển đổi form
       if (overlayBtn) {
         overlayBtn.addEventListener('click', () => {
           container.classList.toggle('right-panel-active');
@@ -183,6 +173,8 @@
       }
     });
   </script>
+
+
   <script>
     const nextIcon ='<i class="fa-solid fa-angle-right"></i>';
     const prevIcon ='<i class="fa-solid fa-angle-left"></i>';

@@ -93,6 +93,7 @@
                 <a th:href="@{/client/index}"><span>Tiếp tục mua hàng</span></a>
             </div>
         </div>
+        <!-- Thay thế phần form trong HTML -->
         <div class="col-12 col-lg-5" th:if="${transaction != null}">
             <h3>Thông tin giao hàng</h3>
             <div class="user-info" th:if="${transaction != null}">
@@ -102,24 +103,54 @@
                     <a th:href="@{/client/logout}" class="logout">Đăng xuất</a>
                 </div>
             </div>
+
+            <!-- Hiển thị thông báo lỗi -->
+            <div id="validation-error" class="alert alert-danger" style="display: none;"></div>
+
             <form id="orderForm" th:action="@{/client/order}" method="POST">
                 <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <input type="hidden" name="transactionId" th:value="${transaction.id}"/>
+
                 <div class="input-group">
-                    <select name="address">
-                        <option>Thêm địa chỉ mới...</option>
-                        <option selected>70000, Vietnam</option>
+                    <select name="address" id="addressSelect">
+                        <option value="">Chọn địa chỉ...</option>
+                        <option value="70000, Vietnam">70000, Vietnam</option>
+                        <option value="new-address">Thêm địa chỉ mới...</option>
                     </select>
                 </div>
+
                 <div class="input-group">
-                    <input type="text" name="name" placeholder="Họ và tên" required th:value="${#authentication.principal.user.fullName}">
+                    <input type="text"
+                           name="name"
+                           id="customerName"
+                           placeholder="Họ và tên *"
+                           required
+                           th:value="${#authentication.principal.user.fullName}"
+                           class="form-control">
+                    <div class="invalid-feedback" id="nameError"></div>
                 </div>
+
                 <div class="input-group">
-                    <input type="text" name="phone" placeholder="Số điện thoại" required>
+                    <input type="tel"
+                           name="phone"
+                           id="customerPhone"
+                           placeholder="Số điện thoại *"
+                           required
+                           class="form-control"
+                           pattern="[0-9]{10,11}">
+                    <div class="invalid-feedback" id="phoneError"></div>
                 </div>
+
                 <div class="input-group">
-                    <input type="text" name="addressDetail" placeholder="Địa chỉ" required>
+                    <input type="text"
+                           name="addressDetail"
+                           id="customerAddress"
+                           placeholder="Địa chỉ chi tiết *"
+                           required
+                           class="form-control">
+                    <div class="invalid-feedback" id="addressError"></div>
                 </div>
+
                 <div class="payment-method">
                     <h3>Phương thức thanh toán</h3>
                     <label class="payment-option">
@@ -133,7 +164,8 @@
                         <span style="font-size: 14px;">Thanh toán qua VNPay</span>
                     </label>
                 </div>
-                <button type="submit" name="submit" class="btn-submit">Đặt hàng</button>
+
+                <button type="submit" name="submit" class="btn-submit" id="submitBtn">Đặt hàng</button>
             </form>
         </div>
     </div>
@@ -143,6 +175,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Giữ nguyên code update quantity
         $('.qtyplus').click(function() {
             updateQuantity($(this), 1);
         });
@@ -189,18 +222,77 @@
             });
         }
 
-        // Xử lý form khi chọn VNPay
+        // Validation function
+        function validateForm() {
+            let isValid = true;
+            const errorDiv = $('#validation-error');
+            errorDiv.hide().empty();
+
+            // Reset previous errors
+            $('.form-control').removeClass('is-invalid');
+            $('.invalid-feedback').text('');
+
+            // Validate name
+            const name = $('#customerName').val().trim();
+            if (!name || name.length < 2) {
+                $('#customerName').addClass('is-invalid');
+                $('#nameError').text('Họ và tên phải có ít nhất 2 ký tự');
+                isValid = false;
+            }
+
+            // Validate phone
+            const phone = $('#customerPhone').val().trim();
+            const phoneRegex = /^[0-9]{10,11}$/;
+            if (!phone || !phoneRegex.test(phone)) {
+                $('#customerPhone').addClass('is-invalid');
+                $('#phoneError').text('Số điện thoại phải có 10-11 chữ số');
+                isValid = false;
+            }
+
+            // Validate address
+            const addressDetail = $('#customerAddress').val().trim();
+            if (!addressDetail || addressDetail.length < 5) {
+                $('#customerAddress').addClass('is-invalid');
+                $('#addressError').text('Địa chỉ phải có ít nhất 5 ký tự');
+                isValid = false;
+            }
+
+            // Check if cart is empty
+            const totalPrice = parseInt($('.total-price').text().replace(/[^0-9]/g, '')) || 0;
+            if (totalPrice <= 0) {
+                errorDiv.append('<p>Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi đặt hàng.</p>');
+                errorDiv.show();
+                isValid = false;
+            }
+
+            if (!isValid) {
+                errorDiv.append('<p>Vui lòng kiểm tra và điền đầy đủ thông tin.</p>');
+                errorDiv.show();
+                $('html, body').animate({ scrollTop: 0 }, 'fast');
+            }
+
+            return isValid;
+        }
+
+        // Form submission handler
         $('#orderForm').on('submit', function(e) {
+            e.preventDefault(); // Ngăn submit mặc định
+
+            // Validate form
+            if (!validateForm()) {
+                return false;
+            }
+
+            const submitBtn = $('#submitBtn');
+            const originalText = submitBtn.text();
+            submitBtn.prop('disabled', true).text('Đang xử lý...');
+
             var paymentMethod = $('input[name="payment"]:checked').val();
             var transactionId = $('input[name="transactionId"]').val();
             var totalPrice = parseInt($('.total-price').text().replace(/[^0-9]/g, '')) || 0;
 
             if (paymentMethod === 'vnpay') {
-                e.preventDefault();
-                if (totalPrice <= 0) {
-                    alert('Tổng tiền phải lớn hơn 0');
-                    return;
-                }
+                // Xử lý VNPay
                 $.ajax({
                     url: '/api/vnpay/create-payment',
                     type: 'POST',
@@ -216,13 +308,81 @@
                         if (response.status === 'OK' && response.data.paymentUrl) {
                             window.location.href = response.data.paymentUrl;
                         } else {
-                            alert('Lỗi khi tạo URL thanh toán: ' + response.message);
+                            alert('Lỗi khi tạo URL thanh toán: ' + (response.message || 'Unknown error'));
+                            submitBtn.prop('disabled', false).text(originalText);
                         }
                     },
                     error: function(xhr) {
-                        alert('Lỗi khi tạo URL thanh toán: ' + xhr.responseText);
+                        let errorMsg = 'Lỗi khi tạo URL thanh toán';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg += ': ' + xhr.responseJSON.message;
+                        }
+                        alert(errorMsg);
+                        submitBtn.prop('disabled', false).text(originalText);
                     }
                 });
+            } else {
+                // Xử lý COD - submit form bình thường
+                const formData = $(this).serialize();
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="_csrf"]').attr('content')
+                    },
+                    success: function(response) {
+                        // Redirect nếu thành công (controller sẽ redirect)
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        } else {
+                            window.location.href = '/client/cart';
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'Lỗi khi đặt hàng';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg += ': ' + xhr.responseJSON.message;
+                        }
+                        $('#validation-error').text(errorMsg).show();
+                        submitBtn.prop('disabled', false).text(originalText);
+                    }
+                });
+            }
+        });
+
+        // Real-time validation
+        $('#customerName').on('blur', function() {
+            const name = $(this).val().trim();
+            if (name && name.length < 2) {
+                $(this).addClass('is-invalid');
+                $('#nameError').text('Họ và tên phải có ít nhất 2 ký tự');
+            } else {
+                $(this).removeClass('is-invalid');
+                $('#nameError').text('');
+            }
+        });
+
+        $('#customerPhone').on('blur', function() {
+            const phone = $(this).val().trim();
+            const phoneRegex = /^[0-9]{10,11}$/;
+            if (phone && !phoneRegex.test(phone)) {
+                $(this).addClass('is-invalid');
+                $('#phoneError').text('Số điện thoại phải có 10-11 chữ số');
+            } else {
+                $(this).removeClass('is-invalid');
+                $('#phoneError').text('');
+            }
+        });
+
+        $('#customerAddress').on('blur', function() {
+            const address = $(this).val().trim();
+            if (address && address.length < 5) {
+                $(this).addClass('is-invalid');
+                $('#addressError').text('Địa chỉ phải có ít nhất 5 ký tự');
+            } else {
+                $(this).removeClass('is-invalid');
+                $('#addressError').text('');
             }
         });
     });

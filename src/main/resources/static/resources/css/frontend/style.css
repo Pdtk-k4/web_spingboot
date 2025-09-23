@@ -1536,9 +1536,17 @@ table.table-cart tr td.remove {
     margin-right: 4px;
 }
 
+.error-message-register{
+    color: red;
+    font-weight: bold;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
 .error-message{
     color: red;
     font-weight: bold;
+    font-size: 12px;
 }
 /* thanh toán */
 .user-info {
