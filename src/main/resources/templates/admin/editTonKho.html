@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="/admin/include/head :: head"></head>
+<body>
+<div class="container_12">
+  <div th:replace="/admin/include/header :: header"></div>
+  <div class="clear"></div>
+  <div th:replace="/admin/include/header :: navbar"></div>
+  <div class="clear"></div>
+  <div th:replace="/admin/include/sidebar :: sidebar"></div>
+  <div class="grid_10">
+    <div class="box round first grid">
+      <h2>Sửa tên tồn kho</h2>
+      <div class="block copyblock">
+
+        <form th:action="@{/admin/editTonKho/{id}(id=${inventories.id})}" th:object="${inventories}" method="post">
+          <table class="form">
+            <tr>
+              <td>
+                <label for="quantity">Số lượng</label>
+                <input type="number" th:field="*{quantity}" id="quantity" placeholder="Nhập số lượng tồn kho" class="medium" required />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input type="submit" name="submit" value="Cập nhật" />
+              </td>
+            </tr>
+          </table>
+        </form>
+
+      </div>
+    </div>
+  </div>
+  <div class="clear"></div>
+</div>
+<div class="clear"></div>
+<div th:replace="/admin/include/footer :: footer"></div>
+</body>
+</html>

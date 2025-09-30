@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Controller
@@ -44,6 +45,8 @@ public class ProductController {
 
     @Autowired
     private HDNhapHangChiTietRepository hdNhapHangChiTietRepository;
+    @Autowired
+    private InventoryService inventoryService;
 
     // Hàm tạo chuỗi ngẫu nhiên 8 ký tự
     private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -395,5 +398,42 @@ public class ProductController {
         model.addAttribute("inventories", inventories);
         model.addAttribute("importPriceMap", importPriceMap);
         return "admin/tonkho";
+    }
+
+    @GetMapping("/editTonKho/{id}")
+    public String editTonKho(@PathVariable("id") Long id, Model model) {
+        Optional<Inventory> inventoryOptional = inventoryRepository.findById(id);
+        if (inventoryOptional.isEmpty()) {
+            model.addAttribute("error", "Tồn kho không tồn tại");
+            return "redirect:/admin/tonkho";
+        }
+        Inventory inventories = inventoryOptional.get();
+        model.addAttribute("inventories", inventories);
+        return "admin/editTonKho";
+    }
+
+    @PostMapping("/editTonKho/{id}")
+    public String updateTonKho(@PathVariable("id") Long id, @ModelAttribute("inventories") Inventory inventories, Model model) {
+        Optional<Inventory> inventoryOptional = inventoryRepository.findById(id);
+        if (inventoryOptional.isEmpty()) {
+            model.addAttribute("error", "Tồn kho không tồn tại");
+            return "redirect:/admin/tonkho";
+        }
+        Inventory existingInventory = inventoryOptional.get();
+        if (inventories.getQuantity() < 0) {
+            model.addAttribute("error", "Số lượng không được âm!");
+            model.addAttribute("inventories", existingInventory);
+            return "admin/editTonKho";
+        }
+        existingInventory.setQuantity(inventories.getQuantity());
+        existingInventory.setLastUpdated(LocalDateTime.now());
+        if (inventoryService.update(existingInventory)) {
+            model.addAttribute("success", "Cập nhật thành công!");
+            return "redirect:/admin/tonkho";
+        } else {
+            model.addAttribute("error", "Cập nhật thất bại!");
+            model.addAttribute("inventories", existingInventory);
+            return "admin/editTonKho";
+        }
     }
 }

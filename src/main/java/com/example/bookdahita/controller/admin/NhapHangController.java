@@ -6,10 +6,7 @@ import com.example.bookdahita.repository.HDNhapHangRepository;
 import com.example.bookdahita.repository.InventoryRepository;
 import com.example.bookdahita.repository.ProductRepository;
 import com.example.bookdahita.repository.UserRepository;
-import com.example.bookdahita.service.AuthorService;
-import com.example.bookdahita.service.CategoryService;
-import com.example.bookdahita.service.StorageService;
-import com.example.bookdahita.service.SupplierService;
+import com.example.bookdahita.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +43,8 @@ public class NhapHangController {
         }
         return sb.toString();
     }
+    @Autowired
+    private HDNhapHangService hdNhapHangService;
 
     @Autowired
     private StorageService storageService;
@@ -341,5 +340,15 @@ public class NhapHangController {
         List<HDNhapHangChiTiet> hdNhapHangChiTiets = hdNhapHangChiTietRepository.findAll();
         model.addAttribute("hdNhapHangChiTiets", hdNhapHangChiTiets);
         return "admin/HdNhapHang";
+    }
+
+    @GetMapping("/deltonkho/{id}")
+    public String deltonkho(@PathVariable("id") Long id, Model model) {
+        if (hdNhapHangService.delete(id)) {
+            model.addAttribute("success", "Xóa thành công!");
+        } else {
+            model.addAttribute("error", "Xóa thất bại!");
+        }
+        return "redirect:/admin/HdNhapHang";
     }
 }

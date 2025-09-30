@@ -165,6 +165,8 @@
                         <th>Số lượng</th>
                         <th>Thành tiền</th>
                         <th>Thời gian</th>
+                        <th>Xóa</th>
+
                     </tr>
                     </thead>
                     <tbody>
@@ -181,6 +183,7 @@
                             <span th:text="${#temporals.format(hdNhapHangChiTiet.hdNhapHang.createAt, 'HH:mm')}"></span>
                             <span th:text="${#temporals.format(hdNhapHangChiTiet.hdNhapHang.createAt, 'dd/MM/yyyy')}"></span>
                         </td>
+                        <td><a th:href="@{/admin/deltonkho/{id}(id=${hdNhapHangChiTiet.id})}" onclick="return confirm('Bạn có chắc muốn xóa?')" >Xóa</a></td>
                     </tr>
                     </tbody>
                 </table>

@@ -118,6 +118,7 @@
                         <th>Giá nhập</th>
                         <th>Giá bán</th>
                         <th>Tồn kho</th>
+                        <th>Tùy chỉnh</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -143,6 +144,9 @@
                             </p>
                         </td>
                         <td th:text="${inventory.quantity}"></td>
+                        <td>
+                            <a th:href="@{/admin/editTonKho/{id}(id=${inventory.id})}">Sửa số lượng</a>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
